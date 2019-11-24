@@ -19,25 +19,18 @@
 #include "Enums.h"
 
 #include <ctime>
-#include "Entity.h"
 #include <vector>
+
+#include "EWindowGame.h"
 
 
 
 float correction_x = 0.1f;
 float correction_y = 0.1f;
 
-short path_matrix [50][50];
-bool unwalk_matrix[50][50];
-bool blocked_by_entity[50][50];
 
-int heatmap_phase = Enums::HEATMAP_PHASE::UP;
 
-float character_position_x = 500.0f;
-float character_position_y = 500.0f;
 
-int path_position_x = 0;
-int path_position_y = 0;
 
 
 Shader* ourShader;
@@ -52,7 +45,7 @@ int width, height, nrChannels;
 float delta_time;
 float saved_time_for_delta;
 
-std::vector<Entity*> entity_list;
+
 
 void recalculate_correction();
 void processInput(GLFWwindow* window);
@@ -145,26 +138,9 @@ int main()
 	glBindTexture(GL_TEXTURE_2D, ETexture::texture[0]);
 	ourShader->setInt("texture1", ETexture::texture[0]);
 
-	for (int i = 0; i < 50; i++)
-	for (int j = 0; j < 50; j++)
-	{
-	
-		if (rand() % 5 == 0)
-		{
-			unwalk_matrix[j][i] = true;
-		}
-		else
-		{
-			unwalk_matrix[j][i] = false;
-		}
-
-		path_matrix[j][i] = 99;
-		blocked_by_entity[j][i] = false;
-	}
-
-	entity_list.push_back(new Entity(200.0f, 150.0f));
-	entity_list.push_back(new Entity(300.0f, 150.0f));
-	entity_list.push_back(new Entity(400.0f, 150.0f));
+	EWindowGame* wg = new EWindowGame();
+	EWindow::window_game = wg;
+	EWindow::window_list.push_back (wg);
 	
 
 	while (true)
@@ -172,6 +148,12 @@ int main()
 		clock_t time = clock();
 		delta_time = (time - saved_time_for_delta) / 1000.0;
 		saved_time_for_delta = time;
+
+		for (EWindow* w : EWindow::window_list)
+		{
+			w->default_update(delta_time);
+			w->update(delta_time);
+		}
 
 		ourShader->use();
 
@@ -190,222 +172,11 @@ int main()
 
 		EWindow::batch->reset();
 
-		if (heatmap_phase == Enums::HEATMAP_PHASE::UP)
-		{
-			path_position_x = (int)(character_position_x / 50.0f);
-			path_position_y = (int)(character_position_y / 50.0f);
-
-			path_matrix[path_position_x][path_position_y] = 5;
-		}
-
-		for (Entity* e : entity_list)
-		{
-			blocked_by_entity[(int)(*e->position_x / 50.0f)][(int)(*e->position_y / 50.0f)] = true;
-		}
-
-		if (heatmap_phase == Enums::HEATMAP_PHASE::UP)
-		for (int i = 0; i < 20; i++)
-		for (int j = 0; j < 20; j++)
-		if ((!unwalk_matrix[j][i]) && (!blocked_by_entity[j][i]))
-		{
-			if (i < 19)
-			{
-				if (path_matrix[j][i + 1] > path_matrix[j][i]) { path_matrix[j][i + 1] = path_matrix[j][i] + 1; }
-			}
-		}
-
-		if (heatmap_phase == Enums::HEATMAP_PHASE::RIGHT)
-		for (int j = 0; j < 20; j++)
-		for (int i = 0; i < 20; i++)
-		if ((!unwalk_matrix[j][i]) && (!blocked_by_entity[j][i]))
-		{
-			if (j < 19)
-			{
-				if (path_matrix[j + 1][i] > path_matrix[j][i]) { path_matrix[j + 1][i] = path_matrix[j][i] + 1; }
-			}
-		}
-
-		if (heatmap_phase == Enums::HEATMAP_PHASE::DOWN)
-		for (int i = 19; i > 0; i--)
-		for (int j = 0; j < 20; j++)
-		if ((!unwalk_matrix[j][i]) && (!blocked_by_entity[j][i]))
-		{
-			if (i > 0)
-			{
-				if (path_matrix[j][i - 1] > path_matrix[j][i]) { path_matrix[j][i - 1] = path_matrix[j][i] + 1; }
-			}
-		}
-
-		if (heatmap_phase == Enums::HEATMAP_PHASE::LEFT)
-		for (int j = 19; j > 0; j--)
-		for (int i = 0; i < 20; i++)
-		if ((!unwalk_matrix[j][i]) && (!blocked_by_entity[j][i]))
-		{
-			if (j > 0)
-			{
-				if (path_matrix[j - 1][i] > path_matrix[j][i]) { path_matrix[j - 1][i] = path_matrix[j][i] + 1; }
-			}
-		}
-
-		if (heatmap_phase == Enums::HEATMAP_PHASE::HEATING)
-		for (int i = 0; i < 20; i++)
-		for (int j = 0; j < 20; j++)
-		{
-			path_matrix[j][i] += 1;
-			if (path_matrix[j][i] > 100) { path_matrix[j][i] = 100; }
-		}
-
-		for (int i=0; i<20; i++)
-		for (int j=0; j<20; j++)
-		{
-			if (unwalk_matrix[j][i])
-			{
-				EWindow::batch->setcolor(1.0f, 0.0f, 0.0f, 1.0f);
-			}
-			else
-			{
-				//float col = 1.0f - path_matrix[j][i] / 10.0f;
-				//EWindow::batch->setcolor(col, col, col, 1.0f);
-
-				int color_correction = 0;
-				if ((heatmap_phase == Enums::HEATMAP_PHASE::HEATING)) { color_correction = -1; }
-
-				if (path_matrix[j][i] + color_correction > 15) { EWindow::batch->setcolor(0.0f, 0.0f, 0.0f, 0.75f); }
-				else
-				if (path_matrix[j][i] + color_correction > 13) { EWindow::batch->setcolor(1.0f, 0.0f, 0.0f, 0.5f); }
-				else
-				if (path_matrix[j][i] + color_correction > 10) { EWindow::batch->setcolor(1.0f, 1.0f, 0.0f, 0.5f); }
-				else
-				if (path_matrix[j][i] + color_correction > 8) { EWindow::batch->setcolor(0.0f, 1.0f, 0.0f, 0.5f); }
-				else
-				if (path_matrix[j][i] + color_correction > 5) { EWindow::batch->setcolor(0.0f, 1.0f, 1.0f, 0.5f); }
-				else
-				if (path_matrix[j][i] + color_correction == 5) { EWindow::batch->setcolor(1.0f, 1.0f, 1.0f, 0.5f); }
-				else
-				{ EWindow::batch->setcolor(0.0f, 0.0f, 0.0f, 1.0f); }
-
-			}
-
-			
-			EWindow::batch->draw_rect_with_uv(j * 50.0f, i * 50.0f, 45.0f, 45.0f, 0, 0, 1, 1);
-		}
-
-		heatmap_phase++;
-		if (heatmap_phase > 4) { heatmap_phase = 0; }
-
-		EWindow::batch->setcolor(0.0f, 0.0f, 0.0f, 1.0f);
-		EWindow::batch->draw_rect_with_uv(character_position_x - 12.5f, character_position_y - 12.5f, 25.0f, 25.0f, 0, 0, 1, 1);
-
 		
-		for (Entity* e : entity_list)
+		for (EWindow* w : EWindow::window_list)
 		{
-			blocked_by_entity[(int)(*e->position_x / 50.0f)][(int)(*e->position_y / 50.0f)] = false;
-		}
-
-		for (Entity* e : entity_list)
-		{
-
-			int selected_direction_x = 0;
-			int selected_direction_y = 0;
-
-			int min_direction = 99;
-
-			int rounded_pos_x = (int)(*e->position_x / 50.0f);
-			int rounded_pos_y = (int)(*e->position_y / 50.0f);
-
-			float dst_x = *e->position_x - character_position_x;
-			float dst_y = *e->position_y - character_position_y;
-			float dst_total = dst_x * dst_x + dst_y * dst_y;
-
-			if (dst_total >= 3200)
-			{
-				if ((path_matrix[rounded_pos_x][rounded_pos_y + 1] < min_direction) && (!unwalk_matrix[rounded_pos_x][rounded_pos_y + 1]))
-				{
-					min_direction = path_matrix[rounded_pos_x][rounded_pos_y + 1];
-					selected_direction_x = 0;
-					selected_direction_y = 1;
-
-					if (*e->position_x < rounded_pos_x * 50.0f + 20.0f)
-					{
-						selected_direction_x = 1;
-						selected_direction_y = 0;
-					}
-
-					if (*e->position_x > rounded_pos_x * 50.0f + 30.0f)
-					{
-						selected_direction_x = -1;
-						selected_direction_y = 0;
-					}
-				}
-
-				if ((path_matrix[rounded_pos_x + 1][rounded_pos_y] < min_direction) && (!unwalk_matrix[rounded_pos_x + 1][rounded_pos_y]))
-				{
-					min_direction = path_matrix[rounded_pos_x + 1][rounded_pos_y];
-					selected_direction_x = 1;
-					selected_direction_y = 0;
-
-					if (*e->position_y < rounded_pos_y * 50.0f + 20.0f)
-					{
-						selected_direction_x = 0;
-						selected_direction_y = 1;
-					}
-
-					if (*e->position_y > rounded_pos_y * 50.0f + 30.0f)
-					{
-						selected_direction_x = 0;
-						selected_direction_y = -1;
-					}
-				}
-
-				if ((path_matrix[rounded_pos_x][rounded_pos_y - 1] < min_direction) && (!unwalk_matrix[rounded_pos_x][rounded_pos_y - 1]))
-				{
-					min_direction = path_matrix[rounded_pos_x][rounded_pos_y - 1];
-					selected_direction_x = 0;
-					selected_direction_y = -1;
-
-					if (*e->position_x < rounded_pos_x * 50.0f + 20.0f)
-					{
-						selected_direction_x = 1;
-						selected_direction_y = 0;
-					}
-
-					if (*e->position_x > rounded_pos_x * 50.0f + 30.0f)
-					{
-						selected_direction_x = -1;
-						selected_direction_y = 0;
-					}
-				}
-
-				if ((path_matrix[rounded_pos_x - 1][rounded_pos_y] < min_direction) && (!unwalk_matrix[rounded_pos_x - 1][rounded_pos_y]))
-				{
-					min_direction = path_matrix[rounded_pos_x - 1][rounded_pos_y];
-					selected_direction_x = -1;
-					selected_direction_y = 0;
-
-					if (*e->position_y < rounded_pos_y * 50.0f + 20.0f)
-					{
-						selected_direction_x = 0;
-						selected_direction_y = 1;
-					}
-
-					if (*e->position_y > rounded_pos_y * 50.0f + 30.0f)
-					{
-						selected_direction_x = 0;
-						selected_direction_y = -1;
-					}
-				}
-			}
-
-			
-				*e->position_x += 100.0f * delta_time * selected_direction_x;
-				*e->position_y += 100.0f * delta_time * selected_direction_y;
-
-
-
-			EWindow::batch->setcolor(0.0f, 1.0f, 1.0f, 1.0f);
-
-			//int temp_x = *e->position_x;
-			EWindow::batch->draw_rect_with_uv(*e->position_x - 12.5f, *e->position_y - 12.5f, 25.0f, 25.0f, 0, 0, 1, 1);
+			w->default_draw(delta_time);
+			w->draw(delta_time);
 		}
 		
 
@@ -465,15 +236,16 @@ void char_input_callback(GLFWwindow* window, unsigned int _char)
 
 void processInput(GLFWwindow* window)
 {
-	if ((glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)) {character_position_y += 100.0f * delta_time;}
-	if ((glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)) {character_position_y -= 100.0f * delta_time;}
+	
+	if ((glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)) {EWindow::window_game->character_position_y += 200.0f * delta_time;}
+	if ((glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)) { EWindow::window_game->character_position_y -= 200.0f * delta_time;}
 
-	if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)) {character_position_x -= 100.0f * delta_time;}
-	if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)) {character_position_x += 100.0f * delta_time;}
+	if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)) {EWindow::window_game->character_position_x -= 200.0f * delta_time;}
+	if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)) {EWindow::window_game->character_position_x += 200.0f * delta_time;}
 
 	if ((glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS))
 	{
-		for (Entity* e : entity_list)
+		for (Entity* e : EWindow::window_game->entity_list)
 		{
 			*e->position_x = (rand() % 1000);
 			*e->position_y = (rand() % 1000);
@@ -488,15 +260,20 @@ void processInput(GLFWwindow* window)
 
 				if (rand() % 5 == 0)
 				{
-					unwalk_matrix[j][i] = true;
+					EWindow::window_game->unwalk_matrix[j][i][0] = true;
+					EWindow::window_game->unwalk_matrix[j][i][1] = true;
 				}
 				else
 				{
-					unwalk_matrix[j][i] = false;
+					EWindow::window_game->unwalk_matrix[j][i][0] = false;
+					EWindow::window_game->unwalk_matrix[j][i][1] = false;
 				}
 
-				path_matrix[j][i] = 99;
-				blocked_by_entity[j][i] = false;
+				EWindow::window_game->path_matrix[j][i][0] = 99;
+				EWindow::window_game->path_matrix[j][i][1] = 99;
+
+				EWindow::window_game->blocked_by_entity[j][i][0] = false;
+				EWindow::window_game->blocked_by_entity[j][i][1] = false;
 			}
 	}
 }

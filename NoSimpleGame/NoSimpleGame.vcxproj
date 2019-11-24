@@ -128,7 +128,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Batcher.cpp" />
+    <ClCompile Include="ECluster.cpp" />
     <ClCompile Include="EColor.cpp" />
+    <ClCompile Include="EColorCollection.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Enums.h" />
     <ClCompile Include="ETexture.cpp" />
@@ -139,7 +141,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Batcher.h" />
+    <ClInclude Include="ECluster.h" />
     <ClInclude Include="EColor.h" />
+    <ClInclude Include="EColorCollection.h" />
     <ClInclude Include="EGabarite.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="ETexture.h" />

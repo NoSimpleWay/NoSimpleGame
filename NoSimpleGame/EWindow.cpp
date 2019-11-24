@@ -1,6 +1,8 @@
 #include "EWindow.h"
 
 GLFWwindow* EWindow::main_window = NULL;
+EWindowGame* EWindow::window_game = NULL;
+std::vector<EWindow*> EWindow::window_list;
 
 int EWindow::SCR_WIDTH		= 1000;
 int EWindow::SCR_HEIGHT		= 800;
@@ -24,5 +26,9 @@ void EWindow::draw(float _d)
 }
 
 EWindow::EWindow()
+{
+}
+
+EWindow::~EWindow()
 {
 }
