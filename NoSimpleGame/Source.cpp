@@ -235,6 +235,7 @@ void processInput(GLFWwindow* window)
 	if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)) {EWindow::window_game->character_position_x -= 200.0f * delta_time;}
 	if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)) {EWindow::window_game->character_position_x += 200.0f * delta_time;}
 
+	/*
 	if ((glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS))
 	{
 		for (Entity* e : EWindow::window_game->entity_list)
@@ -242,7 +243,7 @@ void processInput(GLFWwindow* window)
 			*e->position_x = (rand() % 1000) + 55.0f;
 			*e->position_y = (rand() % 1000) + 55.0f;
 		}
-	}
+	}*/
 
 	/*
 	if ((glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS))

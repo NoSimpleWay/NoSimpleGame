@@ -23,6 +23,18 @@ public:
 
 	EPathMatrix* link_to_path_matrix;
 
+	void default_update(float _d);
+	virtual void update(float _d);
+
+	int prev_cluster_position_x;
+	int prev_cluster_position_y;
+
+	int new_cluster_position_x;
+	int new_cluster_position_y;
+
+	bool* already_updated = new (bool){ false };
+
+
 	Entity();
 	Entity(float _x, float _y);
 	~Entity();

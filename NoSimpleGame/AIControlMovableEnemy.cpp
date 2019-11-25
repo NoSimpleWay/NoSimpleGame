@@ -103,8 +103,8 @@ void AIControlMovableEnemy::update(Entity* _e, float _d)
 	}
 
 
-	*_e->position_x += 100.0f * _d * selected_direction_x;
-	*_e->position_y += 100.0f * _d * selected_direction_y;
+	*_e->speed_x += 5.0f * _d * selected_direction_x;
+	*_e->speed_y += 5.0f * _d * selected_direction_y;
 
 	
 

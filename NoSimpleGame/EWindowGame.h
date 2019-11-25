@@ -25,7 +25,11 @@ public:
 	float character_position_x = 500.0f;
 	float character_position_y = 500.0f;
 
+	int cluster_calculator_left_border;
+	int cluster_calculator_right_border;
 
+	int cluster_calculator_up_border;
+	int cluster_calculator_down_border;
 
 
 
@@ -35,7 +39,7 @@ public:
 	ECluster* cluster[20][20];
 
 	//#include "Entity.h"
-	std::vector<Entity*> entity_list;
+	//std::vector<Entity*> entity_list;
 
 	void default_update(float _d);
 	virtual void update(float _d);
