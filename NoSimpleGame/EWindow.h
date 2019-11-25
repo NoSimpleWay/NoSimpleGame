@@ -9,6 +9,10 @@
 #include "Batcher.h"
 #include <vector>
 
+#include <learnopengl/shader_s.h>
+
+#include <iostream>
+
 class EWindowGame;
 class EWindow
 {
@@ -23,6 +27,14 @@ public:
 
 	static int SCR_WIDTH;
 	static int SCR_HEIGHT;
+
+	static glm::mat4 matrix_transform;
+	static Shader* ourShader;
+
+	static float correction_x;
+	static float correction_y;
+
+	static unsigned int transformLoc;
 
 	EWindow();
 	~EWindow();

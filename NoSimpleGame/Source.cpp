@@ -8,7 +8,7 @@
 #include <GLFW/glfw3.h>
 
 #include <learnopengl/filesystem.h>
-#include <learnopengl/shader_s.h>
+
 
 #include <iostream>
 
@@ -25,19 +25,18 @@
 
 
 
-float correction_x = 0.1f;
-float correction_y = 0.1f;
 
 
 
 
 
 
-Shader* ourShader;
 
-glm::mat4 matrix_transform;
 
-unsigned int transformLoc;
+
+
+
+
 
 unsigned char* data1;
 int width, height, nrChannels;
@@ -98,10 +97,10 @@ int main()
 		return -1;
 	}
 
-	ourShader = new Shader("data/5.1.transform.vs", "data/5.1.transform.fs");
+	EWindow::ourShader = new Shader("data/5.1.transform.vs", "data/5.1.transform.fs");
 
-	ourShader->use();
-	glfwSwapInterval(0);
+	EWindow::ourShader->use();
+	glfwSwapInterval(1);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -136,14 +135,14 @@ int main()
 	load_texture("data/white_pixel.png", 0);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, ETexture::texture[0]);
-	ourShader->setInt("texture1", ETexture::texture[0]);
+	EWindow::ourShader->setInt("texture1", ETexture::texture[0]);
 
 	EWindowGame* wg = new EWindowGame();
 	EWindow::window_game = wg;
 	EWindow::window_list.push_back (wg);
 	
 
-	while (true)
+	while (!glfwWindowShouldClose(EWindow::main_window))
 	{
 		clock_t time = clock();
 		delta_time = (time - saved_time_for_delta) / 1000.0;
@@ -155,23 +154,16 @@ int main()
 			w->update(delta_time);
 		}
 
-		ourShader->use();
-
 		//glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		glClearColor(0.4f, 0.5f, 0.6f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		matrix_transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
 
-		matrix_transform = glm::translate(matrix_transform, glm::vec3(-1, -1, 0.0f));
-		matrix_transform = glm::scale(matrix_transform, glm::vec3(correction_x, correction_y, 1));
-
-		transformLoc = glGetUniformLocation(ourShader->ID, "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix_transform));
 
 
 		EWindow::batch->reset();
 
+		
 		
 		for (EWindow* w : EWindow::window_list)
 		{
@@ -207,8 +199,8 @@ void recalculate_correction()
 	if ((EWindow::SCR_WIDTH > 100) && (EWindow::SCR_HEIGHT > 100))
 	{
 
-		correction_x = 1.0 / EWindow::SCR_WIDTH * 2.0;
-		correction_y = 1.0 / EWindow::SCR_HEIGHT * 2.0;
+		EWindow::correction_x = 1.0 / EWindow::SCR_WIDTH * 2.0;
+		EWindow::correction_y = 1.0 / EWindow::SCR_HEIGHT * 2.0;
 
 		//std::cout << "helper correction_x: " << correction_x << " correction_y: " << correction_y << std::endl;
 	}
@@ -247,15 +239,16 @@ void processInput(GLFWwindow* window)
 	{
 		for (Entity* e : EWindow::window_game->entity_list)
 		{
-			*e->position_x = (rand() % 1000);
-			*e->position_y = (rand() % 1000);
+			*e->position_x = (rand() % 1000) + 55.0f;
+			*e->position_y = (rand() % 1000) + 55.0f;
 		}
 	}
 
+	/*
 	if ((glfwGetKey(window, GLFW_KEY_F2) == GLFW_PRESS))
 	{
-		for (int i = 0; i < 50; i++)
-			for (int j = 0; j < 50; j++)
+		for (int i = 0; i < PATH_MATRIX_ARRAY_SIZE; i++)
+		for (int j = 0; j < PATH_MATRIX_ARRAY_SIZE; j++)
 			{
 
 				if (rand() % 5 == 0)
@@ -275,7 +268,7 @@ void processInput(GLFWwindow* window)
 				EWindow::window_game->blocked_by_entity[j][i][0] = false;
 				EWindow::window_game->blocked_by_entity[j][i][1] = false;
 			}
-	}
+	}*/
 }
 
 void load_texture(char const* _path, int _id)

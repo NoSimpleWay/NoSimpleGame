@@ -5,8 +5,8 @@ public:
 	enum HEATMAP_PHASE
 	{
 	UP,
-	RIGHT,
 	DOWN,
+	RIGHT,
 	LEFT,
 	HEATING
 	};

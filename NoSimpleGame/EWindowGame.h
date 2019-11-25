@@ -1,8 +1,14 @@
 #pragma once
 #include "EWindow.h"
 #include "Enums.h"
-#include "Entity.h"
 #include <vector>
+#include "AIControl.h"
+#include "AIControlMovableEnemy.h"
+#include "EPathMatrix.h"
+#include "ECluster.h"
+
+
+const int CLUSTER_SIZE = 500;
 
 class EWindowGame :	public EWindow
 {
@@ -10,22 +16,23 @@ public:
 	EWindowGame();
 	~EWindowGame();
 
-	short path_matrix[50][50][2];
-	bool unwalk_matrix[50][50][2];
-	bool blocked_by_entity[50][50][2];
+	//x = 1;
 
-	int heatmap_phase = Enums::HEATMAP_PHASE::UP;
+	//const int PMAZ = 100;
 
-	int path_position_x = 0;
-	int path_position_y = 1;
+	EPathMatrix* path_to_player_matrix;
 
 	float character_position_x = 500.0f;
 	float character_position_y = 500.0f;
 
-	float path_calcalation_cooldown = 0.1f;
 
-	int current_path_buffer = 0;
-	int back_path_buffer = 0;
+
+
+
+	float camera_x;
+	float camera_y;
+
+	ECluster* cluster[20][20];
 
 	//#include "Entity.h"
 	std::vector<Entity*> entity_list;
@@ -35,4 +42,6 @@ public:
 
 	void default_draw(float _d);
 	virtual void draw(float _d);
+
+	void put_entity_to_cluster(Entity* _e);
 };

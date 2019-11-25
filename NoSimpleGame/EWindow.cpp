@@ -9,6 +9,14 @@ int EWindow::SCR_HEIGHT		= 800;
 
 Batcher* EWindow::batch = NULL;
 
+glm::mat4 EWindow::matrix_transform;
+Shader* EWindow::ourShader = NULL;
+
+float EWindow::correction_x = 0.1f;
+float EWindow::correction_y = 0.1f;
+
+unsigned int EWindow::transformLoc;
+
 void EWindow::default_update(float _d)
 {
 }
