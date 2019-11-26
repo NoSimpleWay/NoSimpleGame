@@ -36,6 +36,9 @@ public:
 
 	static unsigned int transformLoc;
 
+	static int mouse_x;
+	static int mouse_y;
+
 	EWindow();
 	~EWindow();
 

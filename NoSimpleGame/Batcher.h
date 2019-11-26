@@ -40,6 +40,7 @@ public:
 	void setcolor_lum(EColorCollection* _color, float _lum);
 	void setcolor_alpha(EColorCollection* _color, float _a);
 	void draw_rama(float _x, float _y, float _sx, float _sy, float _t, EGabarite* _g);
+	void draw_rama(float _x, float _y, float _sx, float _sy, float _t);
 	void draw_rect_gabarite_custom_uv(float _x, float _y, float _w, float _h, EGabarite* _g, float _sx, float _sy, float _ex, float _ey);
 
 	void draw_simple_rect(float _x, float _y, float _size_x, float _size_y);

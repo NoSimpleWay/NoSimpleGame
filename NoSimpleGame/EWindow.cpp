@@ -17,6 +17,9 @@ float EWindow::correction_y = 0.1f;
 
 unsigned int EWindow::transformLoc;
 
+int EWindow::mouse_x = 0;
+int EWindow::mouse_y = 0;
+
 void EWindow::default_update(float _d)
 {
 }

@@ -33,15 +33,35 @@
 
 	void EWindowGame::update(float _d)
 	{
-		cluster_calculator_left_border =	(int)(character_position_x / CLUSTER_SIZE) - 2; if (cluster_calculator_left_border < 0) {cluster_calculator_left_border = 0;}
-		cluster_calculator_right_border =	(int)(character_position_x / CLUSTER_SIZE) + 2; if (cluster_calculator_right_border > 19) { cluster_calculator_right_border = 19;}
+		cluster_calculator_left_border =	(int)(character_position_x / CLUSTER_SIZE) - 1; if (cluster_calculator_left_border < 0) {cluster_calculator_left_border = 0;}
+		cluster_calculator_right_border =	(int)(character_position_x / CLUSTER_SIZE) + 1; if (cluster_calculator_right_border > 19) { cluster_calculator_right_border = 19;}
 		
-		cluster_calculator_down_border =	(int)(character_position_y / CLUSTER_SIZE) - 2; if (cluster_calculator_down_border < 0) { cluster_calculator_down_border = 0;}
-		cluster_calculator_up_border =		(int)(character_position_y / CLUSTER_SIZE) + 2; if (cluster_calculator_up_border > 19) { cluster_calculator_up_border = 19;}
+		cluster_calculator_down_border =	(int)(character_position_y / CLUSTER_SIZE) - 1; if (cluster_calculator_down_border < 0) { cluster_calculator_down_border = 0;}
+		cluster_calculator_up_border =		(int)(character_position_y / CLUSTER_SIZE) + 1; if (cluster_calculator_up_border > 19) { cluster_calculator_up_border = 19;}
+
+		path_to_player_matrix->path_calculation_cooldown -= _d;
+
+		if (path_to_player_matrix->path_calculation_cooldown <= 0)
+		{
+			//unwalkable element created by entity
+			for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
+			for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
+			for (Entity* e : cluster[j][i]->entity_list)
+			{
+				path_to_player_matrix->blocked_by_entity[(int)(*e->position_x / PATH_CELL_SIZE)][(int)(*e->position_y / PATH_CELL_SIZE)][path_to_player_matrix->back_path_buffer] = true;
+				path_to_player_matrix->blocked_by_entity[(int)(*e->position_x / PATH_CELL_SIZE)][(int)(*e->position_y / PATH_CELL_SIZE)][path_to_player_matrix->current_path_buffer] = true;
+			}
+
+			//calculate heatmap matrix
+			path_to_player_matrix->default_update(_d);
+
+			//reset cooldown
+			path_to_player_matrix->path_calculation_cooldown += 0.025f;
+		}
 
 		//change cluster master
-		for (int i = cluster_calculator_down_border; i < cluster_calculator_up_border; i++)
-		for (int j = cluster_calculator_left_border; j < cluster_calculator_right_border; j++)
+		for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
+		for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
 		for (int k = 0; k < cluster[j][i]->entity_list.size(); k++)
 		if (!*cluster[j][i]->entity_list.at(k)->already_updated)
 		{
@@ -67,8 +87,8 @@
 			}
 		}
 
-		for (int i = cluster_calculator_down_border; i < cluster_calculator_up_border; i++)
-		for (int j = cluster_calculator_left_border; j < cluster_calculator_right_border; j++)
+		for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
+		for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
 		for (Entity* e : cluster[j][i]->entity_list)
 		{
 			*e->already_updated = false;
@@ -83,25 +103,7 @@
 
 
 
-		path_to_player_matrix->path_calculation_cooldown -= _d;
-
-		if (path_to_player_matrix->path_calculation_cooldown <= 0)
-		{
-			//unwalkable element created by entity
-			for (int i = 0; i < 20; i++)
-			for (int j = 0; j < 20; j++)
-			for (Entity* e : cluster[j][i]->entity_list)
-			{
-				path_to_player_matrix->blocked_by_entity[(int)(*e->position_x / PATH_CELL_SIZE)][(int)(*e->position_y / PATH_CELL_SIZE)][path_to_player_matrix->back_path_buffer] = true;
-				path_to_player_matrix->blocked_by_entity[(int)(*e->position_x / PATH_CELL_SIZE)][(int)(*e->position_y / PATH_CELL_SIZE)][path_to_player_matrix->current_path_buffer] = true;
-			}
-
-			//calculate heatmap matrix
-			path_to_player_matrix->default_update(_d);
-
-			//reset cooldown
-			path_to_player_matrix->path_calculation_cooldown += 0.025f;
-		}
+		
 		//entity move to path finding
 		//for (Entity* e : entity_list)
 		//{
@@ -167,7 +169,7 @@
 			EWindow::batch->draw_rect(j * PATH_CELL_SIZE, i * PATH_CELL_SIZE, PATH_CELL_SIZE - 2.0f, PATH_CELL_SIZE - 2.0f);
 		}
 
-		EWindow::batch->setcolor_alpha(EColor::COLOR_GREEN, 0.2f);
+		/*EWindow::batch->setcolor_alpha(EColor::COLOR_GREEN, 0.2f);
 		for (int i = 0; i < 20; i++)
 		for (int j = 0; j < 20; j++)
 		{
@@ -176,8 +178,82 @@
 				EWindow::batch->draw_rect(j * CLUSTER_SIZE, i * CLUSTER_SIZE, CLUSTER_SIZE, CLUSTER_SIZE);
 			}
 
+		}*/
+
+		EWindow::batch->setcolor_alpha(EColor::COLOR_BLUE, 0.2f);
+
+		int cursor_path_x = (int)((EWindow::mouse_x - (SCR_WIDTH / 2.0f - character_position_x)) / PATH_CELL_SIZE);
+		int cursor_path_y = (int)((EWindow::mouse_y - (SCR_HEIGHT / 2.0f - character_position_y)) / PATH_CELL_SIZE);
+
+		EWindow::batch->draw_rect
+		(
+			cursor_path_x * PATH_CELL_SIZE,
+			cursor_path_y * PATH_CELL_SIZE,
+			PATH_CELL_SIZE,
+			PATH_CELL_SIZE
+		);
+
+
+		int min_path = path_to_player_matrix->path_matrix[cursor_path_x][cursor_path_y][path_to_player_matrix->current_path_buffer];
+		
+		
+
+		int choosed_path = -1;
+
+		for (int i = 0; i < 20; i++)
+		{
+			int cursor_direction_x = 0;
+			int cursor_direction_y = 0;
+
+			if (path_to_player_matrix->path_matrix[cursor_path_x][cursor_path_y + 1][path_to_player_matrix->current_path_buffer] < min_path)
+			{
+				min_path = path_to_player_matrix->path_matrix[cursor_path_x][cursor_path_y + 1][path_to_player_matrix->current_path_buffer];
+				cursor_direction_x = 0;
+				cursor_direction_y = 1;
+			}
+
+			if (path_to_player_matrix->path_matrix[cursor_path_x + 1][cursor_path_y][path_to_player_matrix->current_path_buffer] < min_path)
+			{
+				min_path = path_to_player_matrix->path_matrix[cursor_path_x + 1][cursor_path_y][path_to_player_matrix->current_path_buffer];
+				cursor_direction_x = 1;
+				cursor_direction_y = 0;
+			}
+
+			if (path_to_player_matrix->path_matrix[cursor_path_x][cursor_path_y - 1][path_to_player_matrix->current_path_buffer] < min_path)
+			{
+				min_path = path_to_player_matrix->path_matrix[cursor_path_x][cursor_path_y - 1][path_to_player_matrix->current_path_buffer];
+				cursor_direction_x = 0;
+				cursor_direction_y = -1;
+			}
+
+			if (path_to_player_matrix->path_matrix[cursor_path_x - 1][cursor_path_y][path_to_player_matrix->current_path_buffer] < min_path)
+			{
+				min_path = path_to_player_matrix->path_matrix[cursor_path_x - 1][cursor_path_y][path_to_player_matrix->current_path_buffer];
+				cursor_direction_x = -1;
+				cursor_direction_y = 0;
+			}
+
+			cursor_path_x += cursor_direction_x;
+			cursor_path_y += cursor_direction_y;
+
+			EWindow::batch->draw_rect
+			(
+				cursor_path_x * PATH_CELL_SIZE,
+				cursor_path_y * PATH_CELL_SIZE,
+				PATH_CELL_SIZE,
+				PATH_CELL_SIZE
+			);
+
+
+
 		}
 
+		EWindow::batch->setcolor_alpha(EColor::COLOR_WHITE, 0.35f);
+		for (int i = 0; i < 20; i++)
+			for (int j = 0; j < 20; j++)
+			{
+				EWindow::batch->draw_rama(j * CLUSTER_SIZE, i * CLUSTER_SIZE, CLUSTER_SIZE, CLUSTER_SIZE, 2.0f);
+			}
 
 	}
 

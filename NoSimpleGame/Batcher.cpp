@@ -524,6 +524,15 @@ void Batcher::draw_rama(float _x, float _y, float _sx, float _sy, float _t, EGab
 	draw_rect_with_uv(_x - _t, _y - _t, _sx + _t * 2.0f, _t, _g);//up
 }
 
+void Batcher::draw_rama(float _x, float _y, float _sx, float _sy, float _t)
+{
+	draw_rect(_x - _t, _y - _t, _t, _sy + _t * 2.0f);//left
+	draw_rect(_x + _sx, _y - _t, _t, _sy + _t * 2.0f);//right
+
+	draw_rect(_x - _t, _y + _sy, _sx + _t * 2.0f, _t);//up
+	draw_rect(_x - _t, _y - _t, _sx + _t * 2.0f, _t);//up
+}
+
 void Batcher::draw_rect_gabarite_custom_uv(float _x, float _y, float _w, float _h, EGabarite* _g, float _sx, float _sy, float _ex, float _ey)
 {
 	//.#

@@ -9,9 +9,7 @@
 
 #include <learnopengl/filesystem.h>
 
-
 #include <iostream>
-
 
 #include <stb_image.h>
 #include "ETexture.h"
@@ -218,7 +216,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
 void mouse_position_callback(GLFWwindow* window, double _x, double _y)
 {
-
+	EWindow::mouse_x = _x;
+	EWindow::mouse_y = EWindow::SCR_HEIGHT - _y;
 }
 
 void char_input_callback(GLFWwindow* window, unsigned int _char)

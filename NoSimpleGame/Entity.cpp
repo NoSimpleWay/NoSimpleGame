@@ -14,7 +14,7 @@ void Entity::default_update(float _d)
 	*position_x += *speed_x;
 	*position_y += *speed_y;
 
-	float friction_multiplier = pow(0.2f, _d);
+	float friction_multiplier = pow(0.05f, _d);
 
 	*speed_x *= friction_multiplier;
 	*speed_y *= friction_multiplier;
