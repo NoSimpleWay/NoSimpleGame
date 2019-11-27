@@ -7,7 +7,7 @@ EPathMatrix::EPathMatrix()
 		for (int j = 0; j < PATH_MATRIX_ARRAY_SIZE; j++)
 		{
 
-			if (rand() % 5 == 0)
+			if (rand() % 10 == 0)
 			{
 				unwalk_matrix[j][i][0] = true;
 				unwalk_matrix[j][i][1] = true;

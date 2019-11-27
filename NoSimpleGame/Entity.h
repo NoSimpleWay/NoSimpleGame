@@ -3,6 +3,8 @@
 
 class AIControl;
 class AIControlMovableEnemy;
+class AIControlPlayer;
+
 class EPathMatrix;
 class Entity
 {
@@ -34,6 +36,12 @@ public:
 
 	bool* already_updated = new (bool){ false };
 
+	float *collision_size_up =			new float(13.0f);
+	float *collision_size_right =		new float(13.0f);
+	float *collision_size_down =		new float(13.0f);
+	float *collision_size_left =		new float (13.0f);
+
+	float bri;
 
 	Entity();
 	Entity(float _x, float _y);

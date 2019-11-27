@@ -20,6 +20,9 @@ unsigned int EWindow::transformLoc;
 int EWindow::mouse_x = 0;
 int EWindow::mouse_y = 0;
 
+bool EWindow::LMB = false;
+bool EWindow::RMB = false;
+
 void EWindow::default_update(float _d)
 {
 }

@@ -2,8 +2,11 @@
 #include "EWindow.h"
 #include "Enums.h"
 #include <vector>
+
 #include "AIControl.h"
 #include "AIControlMovableEnemy.h"
+#include "AIControlPlayer.h"
+
 #include "EPathMatrix.h"
 #include "ECluster.h"
 
@@ -25,21 +28,23 @@ public:
 	float character_position_x = 500.0f;
 	float character_position_y = 500.0f;
 
-	int cluster_calculator_left_border;
-	int cluster_calculator_right_border;
+	int cluster_calculator_left_border = 0;
+	int cluster_calculator_right_border = 0;
 
-	int cluster_calculator_up_border;
-	int cluster_calculator_down_border;
+	int cluster_calculator_up_border = 0;
+	int cluster_calculator_down_border = 0;
 
 
 
-	float camera_x;
-	float camera_y;
+	float camera_x = 0;
+	float camera_y = 0;
 
 	ECluster* cluster[20][20];
 
 	//#include "Entity.h"
 	//std::vector<Entity*> entity_list;
+
+	Entity* link_to_player;
 
 	void default_update(float _d);
 	virtual void update(float _d);
@@ -48,4 +53,6 @@ public:
 	virtual void draw(float _d);
 
 	void put_entity_to_cluster(Entity* _e);
+
+	int check_collision(Entity* _a, Entity* _b);
 };

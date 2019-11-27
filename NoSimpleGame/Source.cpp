@@ -211,7 +211,26 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
+	//if () 00:13:53 27.11.2019
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+	{
+		EWindow::LMB = true;
+	}
 
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+	{
+		EWindow::LMB = false;
+	}
+
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
+	{
+		EWindow::RMB = true;
+	}
+
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
+	{
+		EWindow::RMB = false;
+	}
 }
 
 void mouse_position_callback(GLFWwindow* window, double _x, double _y)
@@ -228,11 +247,7 @@ void char_input_callback(GLFWwindow* window, unsigned int _char)
 void processInput(GLFWwindow* window)
 {
 	
-	if ((glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)) {EWindow::window_game->character_position_y += 200.0f * delta_time;}
-	if ((glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)) { EWindow::window_game->character_position_y -= 200.0f * delta_time;}
-
-	if ((glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)) {EWindow::window_game->character_position_x -= 200.0f * delta_time;}
-	if ((glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)) {EWindow::window_game->character_position_x += 200.0f * delta_time;}
+	
 
 	/*
 	if ((glfwGetKey(window, GLFW_KEY_F1) == GLFW_PRESS))

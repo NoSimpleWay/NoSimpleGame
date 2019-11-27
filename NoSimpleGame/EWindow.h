@@ -39,6 +39,9 @@ public:
 	static int mouse_x;
 	static int mouse_y;
 
+	static bool LMB;
+	static bool RMB;
+
 	EWindow();
 	~EWindow();
 

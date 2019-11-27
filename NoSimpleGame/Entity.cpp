@@ -43,7 +43,7 @@ Entity::Entity(float _x, float _y)
 	speed_x = new float(0);
 	speed_y = new float(0);
 
-	AI_control = static_control_movable_enemy;
+	
 	//current_control = control;
 	//control = AIControlMovableEnemy;
 	//*position_x = _x;

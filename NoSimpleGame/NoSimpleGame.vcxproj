@@ -129,6 +129,7 @@
   <ItemGroup>
     <ClCompile Include="AIControl.cpp" />
     <ClCompile Include="AIControlMovableEnemy.cpp" />
+    <ClCompile Include="AIControlPlayer.cpp" />
     <ClCompile Include="Batcher.cpp" />
     <ClCompile Include="ECluster.cpp" />
     <ClCompile Include="EColor.cpp" />
@@ -145,6 +146,7 @@
   <ItemGroup>
     <ClInclude Include="AIControl.h" />
     <ClInclude Include="AIControlMovableEnemy.h" />
+    <ClInclude Include="AIControlPlayer.h" />
     <ClInclude Include="Batcher.h" />
     <ClInclude Include="ECluster.h" />
     <ClInclude Include="EColor.h" />
