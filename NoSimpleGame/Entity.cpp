@@ -8,19 +8,10 @@ AIControlMovableEnemy* Entity::static_control_movable_enemy = new AIControlMovab
 
 void Entity::default_update(float _d)
 {
-	prev_cluster_position_x = (int)(*position_x / CLUSTER_SIZE);
-	prev_cluster_position_y = (int)(*position_y / CLUSTER_SIZE);
+	
 
-	*position_x += *speed_x;
-	*position_y += *speed_y;
+	
 
-	float friction_multiplier = pow(0.05f, _d);
-
-	*speed_x *= friction_multiplier;
-	*speed_y *= friction_multiplier;
-
-	new_cluster_position_x = (int)(*position_x / CLUSTER_SIZE);
-	new_cluster_position_y = (int)(*position_y / CLUSTER_SIZE);
 
 	
 
@@ -29,6 +20,50 @@ void Entity::default_update(float _d)
 
 void Entity::update(float _d)
 {
+}
+
+void Entity::move(float _d)
+{
+	prev_cluster_position_x = (int)(*position_x / CLUSTER_SIZE);
+	prev_cluster_position_y = (int)(*position_y / CLUSTER_SIZE);
+
+	*position_x += *speed_x;
+	*position_y += *speed_y;
+
+
+	new_cluster_position_x = (int)(*position_x / CLUSTER_SIZE);
+	new_cluster_position_y = (int)(*position_y / CLUSTER_SIZE);
+
+	//if (*speed_x * *speed_x < 0.01f) { *speed_x = 0; }
+	//if (*speed_y * *speed_y < 0.01f) { *speed_y = 0; }
+
+
+
+
+}
+
+void Entity::move_to(float _x, float _y)
+{
+	prev_cluster_position_x = (int)(*position_x / CLUSTER_SIZE);
+	prev_cluster_position_y = (int)(*position_y / CLUSTER_SIZE);
+
+	*position_x = _x;
+	*position_y = _y;
+
+	new_cluster_position_x = (int)(*position_x / CLUSTER_SIZE);
+	new_cluster_position_y = (int)(*position_y / CLUSTER_SIZE);
+}
+
+void Entity::move_relative(float _x, float _y)
+{
+	prev_cluster_position_x = (int)(*position_x / CLUSTER_SIZE);
+	prev_cluster_position_y = (int)(*position_y / CLUSTER_SIZE);
+
+	*position_x += _x;
+	*position_y += _y;
+
+	new_cluster_position_x = (int)(*position_x / CLUSTER_SIZE);
+	new_cluster_position_y = (int)(*position_y / CLUSTER_SIZE);
 }
 
 Entity::Entity()

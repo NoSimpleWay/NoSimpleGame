@@ -146,6 +146,7 @@ int main()
 		delta_time = (time - saved_time_for_delta) / 1000.0;
 		saved_time_for_delta = time;
 
+		delta_time /= 1.0f;
 		for (EWindow* w : EWindow::window_list)
 		{
 			w->default_update(delta_time);

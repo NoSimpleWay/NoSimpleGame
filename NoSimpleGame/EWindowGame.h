@@ -39,6 +39,8 @@ public:
 	float camera_x = 0;
 	float camera_y = 0;
 
+	float shoot_cooldown = 0.5f;
+
 	ECluster* cluster[20][20];
 
 	//#include "Entity.h"

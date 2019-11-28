@@ -27,6 +27,9 @@ public:
 
 	void default_update(float _d);
 	virtual void update(float _d);
+	void move(float _d);
+	void move_to(float _x, float _y);
+	void move_relative(float _x, float _y);
 
 	int prev_cluster_position_x;
 	int prev_cluster_position_y;
@@ -36,12 +39,16 @@ public:
 
 	bool* already_updated = new (bool){ false };
 
+	float* mass = new float (100.0f);
+
 	float *collision_size_up =			new float(13.0f);
 	float *collision_size_right =		new float(13.0f);
 	float *collision_size_down =		new float(13.0f);
 	float *collision_size_left =		new float (13.0f);
 
 	float bri;
+
+
 
 	Entity();
 	Entity(float _x, float _y);

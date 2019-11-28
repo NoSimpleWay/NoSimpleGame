@@ -16,9 +16,9 @@
 			cluster[j][i] = new ECluster();
 		}
 		
-		for (int i = 0; i < 200; i++)
+		for (int i = 0; i < 40; i++)
 		{
-			Entity* en = new Entity(rand() % 4800 +100, rand() % 4800 + 100);
+			Entity* en = new Entity(rand() % 2400 +100, rand() % 2400 + 100);
 			
 			//*en->collision_size_right -= 10.0f * i;
 
@@ -33,6 +33,7 @@
 
 		link_to_player = new Entity(rand() % 100 + 100.0f, rand() % 100 + 100.0f);
 
+		*link_to_player->mass = 1000.0f;
 		link_to_player->link_to_path_matrix = path_to_player_matrix;
 		link_to_player->AI_control = new AIControlPlayer();
 
@@ -87,68 +88,100 @@
 			path_to_player_matrix->blocked_by_entity[(int)(*e->position_x / PATH_CELL_SIZE)][(int)(*e->position_y / PATH_CELL_SIZE)][path_to_player_matrix->current_path_buffer] = false;
 
 			//entity actions AI
-			e->AI_control->default_update(e, _d);
-			e->AI_control->update(e, _d);
+			if (e->AI_control != NULL)
+			{
+				e->AI_control->default_update(e, _d);
+				e->AI_control->update(e, _d);
+			}
 
 			bool collision_detect = false;
+			int collision_side = -1;
+
 			for (int a = j - 1; a <= j + 1; a++)
 			for (int b = i - 1; b <= i + 1; b++)
 			if ((a >= 0) && (a < 20) && (b>=0) && (b<20))
 			for (int f = 0; f < cluster[a][b]->entity_list.size(); f++)
 			{
-				if (check_collision(e, cluster[a][b]->entity_list.at(f)) != -1)
+				Entity* e2 = cluster[a][b]->entity_list.at(f);
+
+				if ((*e->speed_x * *e->speed_x > 0) || (*e->speed_y * *e->speed_y > 0))
+				{collision_side = check_collision(e, e2);}
+
+				if (collision_side != -1)
 				{
+					
 					collision_detect = true;
 
-					if
-					(
-						((*e->speed_x > 0) && (*e->speed_x > *cluster[a][b]->entity_list.at(f)->speed_x))
-						||
-						((*e->speed_x < 0) && (*e->speed_x < * cluster[a][b]->entity_list.at(f)->speed_x))
-					)
-					{
-						float total_speed = (*e->speed_x + *cluster[a][b]->entity_list.at(f)->speed_x) / 2.0f;
+					//*e->speed_x = 0;
 
-						*e->speed_x = total_speed;
-						*cluster[a][b]->entity_list.at(f)->speed_x = total_speed;
-
-						
-					}
-
-					if
-					(
-						((*e->speed_y > 0) && (*e->speed_y > *cluster[a][b]->entity_list.at(f)->speed_y))
-						||
-						((*e->speed_y < 0) && (*e->speed_y < * cluster[a][b]->entity_list.at(f)->speed_y))
-					)
-					{
-						float total_speed = (*e->speed_y + *cluster[a][b]->entity_list.at(f)->speed_y) / 2.0f;
-
-						*e->speed_y = total_speed;
-						*cluster[a][b]->entity_list.at(f)->speed_y = total_speed;
-
-						
-					}
 					
+					float total_mass = *e->mass + *e2->mass;
+
+					float mass_multiplier_a = *e->mass / total_mass;
+					float mass_multiplier_b =  *e2->mass / total_mass;
+
+					float speed_difference = 0.0f;
+					if
+					(
+						(
+							(*e->speed_x > 0) && (*e->speed_x > *e2->speed_x)
+							||
+							(*e->speed_x < 0) && (*e->speed_x < *e2->speed_x)
+						)
+					)
+					{
+						speed_difference = *e->speed_x - *e2->speed_x;
+
+						*e->speed_x -= speed_difference * mass_multiplier_b;
+						*e2->speed_x += speed_difference * mass_multiplier_a;
+
+						//*e->speed_y *= pow(0.1, _d);
+					}
+
+					if
+					(
+						(
+							(*e->speed_y > 0) && (*e->speed_y > *e2->speed_y)
+							||
+							(*e->speed_y < 0) && (*e->speed_y < *e2->speed_y)
+						)
+
+					)
+					{
+						speed_difference = *e->speed_y - *e2->speed_y;
+
+						*e->speed_y -= speed_difference * mass_multiplier_b;
+						*e2->speed_y += speed_difference * mass_multiplier_a;
+
+						//*e->speed_x *= pow(0.1, _d);
+					}
+
+					/*
+					if (collision_side == 0){e->move_relative( 0.0f, (*e2->position_y - *e->position_y + *e2->collision_size_up + *e->collision_size_down) * 0.9f);}
+					if (collision_side == 1) { e->move_relative((*e2->position_x - *e->position_x + *e2->collision_size_right + *e->collision_size_left) * 0.9f, 0.0f); }
+					
+					if (collision_side == 2) { e->move_relative(0.0f, (*e2->position_y - *e->position_y - *e2->collision_size_down - *e->collision_size_up) * 0.9f); }
+					if (collision_side == 3) { e->move_relative((*e2->position_x - *e->position_x - *e2->collision_size_left - *e->collision_size_right) * 0.9f, 0.0f); }
+					*/
+					//if (collision_side == 0){*e->speed_y = (*e2->position_y - *e->position_y + *e2->collision_size_up + *e->collision_size_down) * 0.8f;}
 				}
 			}
 
-			if (collision_detect)
-			{
-			
-				
-			}
 
-			//*cluster[j][i]->entity_list.at(f)->speed_y = -2.0f;
-			if (!collision_detect) { e->default_update(_d); }
+			
+			e->default_update(_d);
+
+			if (!collision_detect) { e->move(_d); }
+
+			float friction_multiplier = pow(0.05f, _d);
+
+			*e->speed_x *= friction_multiplier;
+			*e->speed_y *= friction_multiplier;
 
 			if ((e->prev_cluster_position_x != e->new_cluster_position_x) || (e->prev_cluster_position_y != e->new_cluster_position_y))
 			{
 				put_entity_to_cluster(e);
-
-				//std::cout << "try erase (element id=" << wtf << "vector size=" << cluster[e->prev_cluster_position_x][e->prev_cluster_position_y]->entity_list.size() << std::endl;
 				cluster[j][i]->entity_list.erase(cluster[j][i]->entity_list.begin() + wtf);
-				//std::cout << "after erase (element id=" << wtf << "vector size=" << cluster[e->prev_cluster_position_x][e->prev_cluster_position_y]->entity_list.size() << std::endl;
 				wtf++;
 			}
 		}
@@ -213,8 +246,8 @@
 		//EWindow::batch->draw_rect_with_uv(character_position_x - 12.5f, character_position_y - 12.5f, 25.0f, 25.0f, 0, 0, 1, 1);
 
 		
-		for (int i = 0; i < 20; i++)
-		for (int j = 0; j < 20; j++)
+		for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
+		for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
 		for (Entity* e : cluster[j][i]->entity_list)
 		{
 			EWindow::batch->setcolor(0.0f, 1.0f, 1.0f, 1.0f);
@@ -222,15 +255,15 @@
 			//int temp_x = *e->position_x;
 			EWindow::batch->draw_rect_with_uv(*e->position_x - 12.5f, *e->position_y - 12.5f, 25.0f, 25.0f, 0, 0, 1, 1);
 
-			//EWindow::batch->setcolor_alpha(EColor::COLOR_RED, 0.5f);
-			/*EWindow::batch->draw_rama
+			EWindow::batch->setcolor_alpha(EColor::COLOR_RED, 0.5f);
+			EWindow::batch->draw_rama
 			(
 				*e->position_x - *e->collision_size_left,
 				*e->position_y - *e->collision_size_down,
 				*e->collision_size_left + *e->collision_size_right,
 				*e->collision_size_down + *e->collision_size_up,
 				1.0f
-			);*/
+			);
 		}
 
 		
@@ -262,10 +295,29 @@
 		int cursor_path_x = (int)((EWindow::mouse_x - (SCR_WIDTH / 2.0f - character_position_x)) / PATH_CELL_SIZE);
 		int cursor_path_y = (int)((EWindow::mouse_y - (SCR_HEIGHT / 2.0f - character_position_y)) / PATH_CELL_SIZE);
 
-		if (EWindow::LMB)
+		if (shoot_cooldown > 0) { shoot_cooldown -= _d; }
+
+		if ((EWindow::LMB) && (shoot_cooldown <= 0))
 		{
-			path_to_player_matrix->unwalk_matrix[cursor_path_x][cursor_path_y][0] = true;
-			path_to_player_matrix->unwalk_matrix[cursor_path_x][cursor_path_y][1] = true;
+			shoot_cooldown += 0.5f;
+			//path_to_player_matrix->unwalk_matrix[cursor_path_x][cursor_path_y][0] = true;
+			//path_to_player_matrix->unwalk_matrix[cursor_path_x][cursor_path_y][1] = true;
+
+			Entity* bullet = new Entity(*link_to_player->position_x, *link_to_player->position_y);
+
+			float dstx = EWindow::mouse_x - (SCR_WIDTH / 2.0f - character_position_x) - character_position_x;
+			float dsty = EWindow::mouse_y - (SCR_HEIGHT / 2.0f - character_position_y) - character_position_y;
+
+
+			float totaldst = pow (dstx * dstx + dsty * dsty, 0.5f);
+
+			*bullet->speed_x = 100.0f * dstx / totaldst;
+			*bullet->speed_y = 100.0f * dsty / totaldst;
+			*bullet->mass = 10.0f;
+
+			bullet->link_to_path_matrix = path_to_player_matrix;
+
+			put_entity_to_cluster(bullet);
 		}
 
 		if (EWindow::RMB)
@@ -274,13 +326,14 @@
 			path_to_player_matrix->unwalk_matrix[cursor_path_x][cursor_path_y][1] = false;
 		}
 
+		/*
 		EWindow::batch->draw_rect
 		(
 			cursor_path_x * PATH_CELL_SIZE,
 			cursor_path_y * PATH_CELL_SIZE,
 			PATH_CELL_SIZE,
 			PATH_CELL_SIZE
-		);
+		);*/
 
 
 		int min_path = path_to_player_matrix->path_matrix[cursor_path_x][cursor_path_y][path_to_player_matrix->current_path_buffer];
@@ -289,7 +342,7 @@
 
 		int choosed_path = -1;
 
-		for (int i = 0; i < 20; i++)
+		/*for (int i = 0; i < 20; i++)
 		{
 			int cursor_direction_x = 0;
 			int cursor_direction_y = 0;
@@ -335,16 +388,16 @@
 
 
 
-		}
+		}*/
 
 
-	/*
+	
 		EWindow::batch->setcolor_alpha(EColor::COLOR_WHITE, 0.35f);
-		for (int i = 0; i < 20; i++)
-		for (int j = 0; j < 20; j++)
+		for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
+		for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
 		{
 			EWindow::batch->draw_rama(j * CLUSTER_SIZE, i * CLUSTER_SIZE, CLUSTER_SIZE, CLUSTER_SIZE, 2.0f);
-		}*/
+		}
 
 	}
 
@@ -363,8 +416,6 @@
 		float pseudo_ray = *_b->position_y + *_a->collision_size_down + *_b->collision_size_up;
 		if
 		(
-			(*_a->speed_y < 0.0f)
-			&&
 			(*_a->position_y >= pseudo_ray)
 			&&
 			(*_a->position_y + *_a->speed_y <= pseudo_ray)
@@ -375,15 +426,13 @@
 			//&&
 			//(*_a->collision_size_left + *_b->collision_size_right >= *_a->speed_x * *_a->speed_x / (- *_a->speed_y))
 		)
-		{ return 1; }
+		{ return 0; }
 
 
 		//down to up
 		pseudo_ray = *_b->position_y - *_a->collision_size_up - *_b->collision_size_down;
 		if
 		(
-			(*_a->speed_y > 0.0f)
-			&&
 			(*_a->position_y <= pseudo_ray)// first point position
 			&&
 			(*_a->position_y + *_a->speed_y >= pseudo_ray)//second point position
@@ -394,35 +443,31 @@
 			//&&
 			//(*_a->collision_size_left + *_b->collision_size_right >= *_a->speed_x * *_a->speed_x / (- *_a->speed_y))
 		)
-		{ return 3; }
+		{ return 2; }
 
 
 		//left to right
 		pseudo_ray = *_b->position_x - *_a->collision_size_right - *_b->collision_size_left;
 		if
 		(
-		(*_a->speed_x > 0.0f)
-		&&
-		(*_a->position_x <= pseudo_ray)
-		&&
-		(*_a->position_x + *_a->speed_x >= pseudo_ray)
-		&&
-		(*_a->position_y + (*_a->position_x - pseudo_ray) * *_a->speed_y / *_a->speed_x >= *_b->position_y - *_a->collision_size_up - *_b->collision_size_down)
-		&&
-		(*_a->position_y + (*_a->position_x - pseudo_ray) * *_a->speed_y / *_a->speed_x <= *_b->position_y + *_a->collision_size_down + *_b->collision_size_up)
-		//&&
-		//(*_a->collision_size_left + *_b->collision_size_right >= *_a->speed_x * *_a->speed_x / (- *_a->speed_y))
+			(*_a->position_x <= pseudo_ray)
+			&&
+			(*_a->position_x + *_a->speed_x >= pseudo_ray)
+			&&
+			(*_a->position_y + (*_a->position_x - pseudo_ray) * *_a->speed_y / *_a->speed_x >= *_b->position_y - *_a->collision_size_up - *_b->collision_size_down)
+			&&
+			(*_a->position_y + (*_a->position_x - pseudo_ray) * *_a->speed_y / *_a->speed_x <= *_b->position_y + *_a->collision_size_down + *_b->collision_size_up)
+			//&&
+			//(*_a->collision_size_left + *_b->collision_size_right >= *_a->speed_x * *_a->speed_x / (- *_a->speed_y))
 		)
 		{
-			return 4;
+			return 3;
 		}
 
 		//left to right
 		pseudo_ray = *_b->position_x + *_a->collision_size_left + *_b->collision_size_right;
 		if
 		(
-		(*_a->speed_x < 0.0f)
-		&&
 		(*_a->position_x >= pseudo_ray)
 		&&
 		(*_a->position_x + *_a->speed_x <= pseudo_ray)
@@ -434,7 +479,7 @@
 		//(*_a->collision_size_left + *_b->collision_size_right >= *_a->speed_x * *_a->speed_x / (- *_a->speed_y))
 		)
 		{
-			return 2;
+			return 1;
 		}
 		//down
 		/*pseudo_ray = *_b->position_y - *_b->collision_size_down - *_a->collision_size_up;
