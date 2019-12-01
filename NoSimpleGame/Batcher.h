@@ -11,8 +11,8 @@ public:
 	void draw_rect(float _x, float _y, float _w, float _h);
 	void draw_rect_position(float _x, float _y, float _x2, float _y2);
 	void draw_rect_without_color(float _x, float _y, float _w, float _h, int _tx, int _ty);
-	void draw_rect_with_uv(float _x, float _y, float _w, float _h, float _start_x, float _start_y, float _end_x, float _end_y);
-	void draw_rect_with_uv(float _x, float _y, float _w, float _h, EGabarite* _g);
+	void draw_with_custom_uv(float _x, float _y, float _w, float _h, float _start_x, float _start_y, float _end_x, float _end_y);
+	void draw_gabarite(float _x, float _y, float _w, float _h, EGabarite* _g);
 	void fill_indices();
 
 	void setcolor_255(int _r, int _g, int _b, int _a);
@@ -24,7 +24,7 @@ public:
 	float batch_color_b;
 	float batch_color_a;
 
-	int batch_force_draw_call = 16000;
+	int batch_force_draw_call = 160000;
 
 	void reinit();
 
@@ -34,8 +34,8 @@ public:
 	unsigned int indices_id = 0;
 	unsigned int indices_order = 0;
 
-	float vertices[500*32];
-	unsigned int indices[500*6];
+	float vertices[5000*32];
+	unsigned int indices[5000*6];
 
 	void draw_call();
 	void reset();

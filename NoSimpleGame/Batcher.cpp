@@ -259,7 +259,7 @@ void Batcher::draw_rect_without_color(float _x, float _y, float _w, float _h, in
 	id += 20;
 }
 
-void Batcher::draw_rect_with_uv(float _x, float _y, float _w, float _h, float _start_x, float _start_y, float _end_x, float _end_y)
+void Batcher::draw_with_custom_uv(float _x, float _y, float _w, float _h, float _start_x, float _start_y, float _end_x, float _end_y)
 {
 	//std::cout << "filled rect" << std::endl;
 
@@ -340,7 +340,7 @@ void Batcher::draw_rect_with_uv(float _x, float _y, float _w, float _h, float _s
 	}
 }
 
-void Batcher::draw_rect_with_uv(float _x, float _y, float _w, float _h, EGabarite* _g)
+void Batcher::draw_gabarite(float _x, float _y, float _w, float _h, EGabarite* _g)
 {
 	//std::cout << "filled rect" << std::endl;
 
@@ -505,11 +505,11 @@ void Batcher::setcolor_alpha(EColorCollection* _color, float _a)
 
 void Batcher::draw_rama(float _x, float _y, float _sx, float _sy, float _t, EGabarite* _g)
 {
-	draw_rect_with_uv(_x - _t, _y - _t, _t, _sy + _t * 2.0f, _g);//left
-	draw_rect_with_uv(_x + _sx, _y - _t, _t, _sy + _t * 2.0f, _g);//right
+	draw_gabarite(_x - _t, _y - _t, _t, _sy + _t * 2.0f, _g);//left
+	draw_gabarite(_x + _sx, _y - _t, _t, _sy + _t * 2.0f, _g);//right
 
-	draw_rect_with_uv(_x - _t, _y + _sy, _sx + _t * 2.0f, _t, _g);//up
-	draw_rect_with_uv(_x - _t, _y - _t, _sx + _t * 2.0f, _t, _g);//up
+	draw_gabarite(_x - _t, _y + _sy, _sx + _t * 2.0f, _t, _g);//up
+	draw_gabarite(_x - _t, _y - _t, _sx + _t * 2.0f, _t, _g);//up
 }
 
 void Batcher::draw_rama(float _x, float _y, float _sx, float _sy, float _t)

@@ -2,14 +2,12 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+//glm::mat4 matrix_transform;
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include "Batcher.h"
 #include <vector>
 
-#include <learnopengl/shader_s.h>
+
 
 #include <iostream>
 
@@ -24,15 +22,6 @@ public:
 	virtual void draw(float _d);
 
 	static GLFWwindow* main_window;
-
-	static int SCR_WIDTH;
-	static int SCR_HEIGHT;
-
-	static glm::mat4 matrix_transform;
-	static Shader* ourShader;
-
-	static float correction_x;
-	static float correction_y;
 
 	static unsigned int transformLoc;
 

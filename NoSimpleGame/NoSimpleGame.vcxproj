@@ -134,10 +134,12 @@
     <ClCompile Include="ECluster.cpp" />
     <ClCompile Include="EColor.cpp" />
     <ClCompile Include="EColorCollection.cpp" />
+    <ClCompile Include="EGabarite.cpp" />
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="Enums.h" />
     <ClCompile Include="EPathMatrix.cpp" />
-    <ClCompile Include="ETexture.cpp" />
+    <ClCompile Include="EGraphicCore.cpp" />
+    <ClCompile Include="ETextureAtlas.cpp" />
     <ClCompile Include="EWindow.cpp" />
     <ClCompile Include="EWindowGame.cpp" />
     <ClCompile Include="glad.c" />
@@ -154,7 +156,8 @@
     <ClInclude Include="EGabarite.h" />
     <ClInclude Include="Entity.h" />
     <ClInclude Include="EPathMatrix.h" />
-    <ClInclude Include="ETexture.h" />
+    <ClInclude Include="EGraphicCore.h" />
+    <ClInclude Include="ETextureAtlas.h" />
     <ClInclude Include="EWindow.h" />
     <ClInclude Include="EWindowGame.h" />
   </ItemGroup>

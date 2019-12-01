@@ -2,23 +2,15 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 #define STB_IMAGE_IMPLEMENTATION
-	
-#include "EWindow.h"
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include <learnopengl/filesystem.h>
-
-#include <iostream>
-
-#include <stb_image.h>
-#include "ETexture.h"
-
-#include "Enums.h"
 
 #include <ctime>
-#include <vector>
 
+#include "EWindow.h"
+#include "EGraphicCore.h"
+//#include "ETextureAtlas.h"
+
+
+#include "Enums.h"
 #include "EWindowGame.h"
 
 
@@ -36,8 +28,7 @@
 
 
 
-unsigned char* data1;
-int width, height, nrChannels;
+
 
 float delta_time;
 float saved_time_for_delta;
@@ -53,7 +44,7 @@ void processInput(GLFWwindow* window);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 void mouse_position_callback(GLFWwindow* window, double _x, double _y);
 void char_input_callback(GLFWwindow* window, unsigned int _char);
-void load_texture(char const* _path, int _id);
+//void load_texture(char const* _path, int _id);
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
@@ -72,7 +63,7 @@ int main()
 
 // glfw window creation
 // --------------------
-	EWindow::main_window = glfwCreateWindow(EWindow::SCR_WIDTH, EWindow::SCR_HEIGHT, "Window name", NULL, NULL);
+	EWindow::main_window = glfwCreateWindow(EGraphicCore::SCR_WIDTH, EGraphicCore::SCR_HEIGHT, "Window name", NULL, NULL);
 
 	if (EWindow::main_window == NULL)
 	{
@@ -95,27 +86,27 @@ int main()
 		return -1;
 	}
 
-	EWindow::ourShader = new Shader("data/5.1.transform.vs", "data/5.1.transform.fs");
+	EGraphicCore::ourShader = new Shader("data/5.1.transform.vs", "data/5.1.transform.fs");
 
-	EWindow::ourShader->use();
-	glfwSwapInterval(0);
+	EGraphicCore::ourShader->use();
+	glfwSwapInterval(1);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glViewport(0, 0, EWindow::SCR_WIDTH, EWindow::SCR_HEIGHT);
+	glViewport(0, 0, EGraphicCore::SCR_WIDTH, EGraphicCore::SCR_HEIGHT);
 	recalculate_correction();
 
 	//
 	//batcher initiation
-	EWindow::batch = new Batcher();
+	EGraphicCore::batch = new Batcher();
 
-	for (int i = 0; i < 500; i++)
+	for (int i = 0; i < 5000; i++)
 	{
-		EWindow::batch->fill_indices();
+		EGraphicCore::batch->fill_indices();
 	}
 
-	EWindow::batch->init();
+	EGraphicCore::batch->init();
 	//
 	//
 
@@ -126,14 +117,14 @@ int main()
 	//--------------------------------------------------------------------------------------------------------
 
 	//cout << (int)01.35f << endl;
-	glViewport(0, 0, EWindow::SCR_WIDTH, EWindow::SCR_HEIGHT);
+	glViewport(0, 0, EGraphicCore::SCR_WIDTH, EGraphicCore::SCR_HEIGHT);
 
 
 
-	load_texture("data/white_pixel.png", 0);
+	EGraphicCore::load_texture("data/white_pixel.png", 0);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, ETexture::texture[0]);
-	EWindow::ourShader->setInt("texture1", ETexture::texture[0]);
+	glBindTexture(GL_TEXTURE_2D, EGraphicCore::texture[0]);
+	EGraphicCore::ourShader->setInt("texture1", EGraphicCore::texture[0]);
 
 	EWindowGame* wg = new EWindowGame();
 	EWindow::window_game = wg;
@@ -160,7 +151,7 @@ int main()
 
 
 
-		EWindow::batch->reset();
+		EGraphicCore::batch->reset();
 
 		
 		
@@ -171,8 +162,8 @@ int main()
 		}
 		
 
-		EWindow::batch->reinit();
-		EWindow::batch->draw_call();
+		EGraphicCore::batch->reinit();
+		EGraphicCore::batch->draw_call();
 
 		glfwSwapBuffers(EWindow::main_window);
 		glfwPollEvents();
@@ -186,7 +177,7 @@ int main()
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {//
 	glViewport(0, 0, width, height);
-	glfwGetWindowSize(window, &EWindow::SCR_WIDTH, &EWindow::SCR_HEIGHT);
+	glfwGetWindowSize(window, &EGraphicCore::SCR_WIDTH, &EGraphicCore::SCR_HEIGHT);
 
 	std::cout << "Resize event width:" << width << " height: " << height << std::endl;
 
@@ -195,11 +186,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 void recalculate_correction()
 {
-	if ((EWindow::SCR_WIDTH > 100) && (EWindow::SCR_HEIGHT > 100))
+	if ((EGraphicCore::SCR_WIDTH > 100) && (EGraphicCore::SCR_HEIGHT > 100))
 	{
 
-		EWindow::correction_x = 1.0 / EWindow::SCR_WIDTH * 2.0;
-		EWindow::correction_y = 1.0 / EWindow::SCR_HEIGHT * 2.0;
+		EGraphicCore::correction_x = 1.0 / EGraphicCore::SCR_WIDTH * 2.0;
+		EGraphicCore::correction_y = 1.0 / EGraphicCore::SCR_HEIGHT * 2.0;
 
 		//std::cout << "helper correction_x: " << correction_x << " correction_y: " << correction_y << std::endl;
 	}
@@ -237,7 +228,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 void mouse_position_callback(GLFWwindow* window, double _x, double _y)
 {
 	EWindow::mouse_x = _x;
-	EWindow::mouse_y = EWindow::SCR_HEIGHT - _y;
+	EWindow::mouse_y = EGraphicCore::SCR_HEIGHT - _y;
 }
 
 void char_input_callback(GLFWwindow* window, unsigned int _char)
@@ -287,47 +278,5 @@ void processInput(GLFWwindow* window)
 	}*/
 }
 
-void load_texture(char const* _path, int _id)
-{
-	glGenTextures(_id, &ETexture::texture[_id]);
-	glBindTexture(GL_TEXTURE_2D, ETexture::texture[_id]);
-	// set the texture wrapping parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	// set texture filtering parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	// load image, create texture and generate mipmaps
-	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-
-	data1 = stbi_load(_path, &width, &height, &nrChannels, STBI_rgb_alpha);
-	if (data1)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data1);
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-		//cout << "loaded texture W:" << width << " H:" << height << endl;
-
-		//last_texture_h = height;
-		//last_texture_w = width;
-
-		//texture_error = false;
-		/*texture_w[_id] = width;
-		texture_h[_id] = height;*/
-	}
-	else
-	{
-		//cout << red << "Failed to load texture " << yellow << "(" << _path << ")" << green << endl;
-
-		//last_texture_h = 21;
-		//last_texture_w = 21;
-
-		//texture_error = true;
-
-		//just_created_gabarite = DefaultGabarite::gabarite_error;
-	}
-
-	stbi_image_free(data1);
-}
 
 

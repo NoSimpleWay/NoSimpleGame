@@ -5,6 +5,7 @@
 
 
 
+
 	EWindowGame::EWindowGame() : EWindow()
 	{
 		path_to_player_matrix = new EPathMatrix();
@@ -41,7 +42,12 @@
 
 		std::cout << "game window created" << std::endl;
 		
-
+		EGraphicCore::gabarite_white_pixel = ETextureAtlas::put_texture_to_atlas("data/white_pixel.png", terrain_atlas);
+		EGraphicCore::gabarite_white_pixel->x += 1 / 4096.0f;
+		EGraphicCore::gabarite_white_pixel->y += 1 / 4096.0f;
+		
+		EGraphicCore::gabarite_white_pixel->x2 -= 1 / 4096.0f;
+		EGraphicCore::gabarite_white_pixel->y2 -= 1 / 4096.0f;
 	}
 
 	void EWindowGame::update(float _d)
@@ -238,15 +244,15 @@
 
 	void EWindowGame::draw(float _d)
 	{
-		camera_x = (SCR_WIDTH / 2.0f - character_position_x) * correction_x;
-		camera_y = (SCR_HEIGHT / 2.0f - character_position_y) * correction_y;
-		EWindow::matrix_transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+		camera_x = (EGraphicCore::SCR_WIDTH / 2.0f - character_position_x) * EGraphicCore::correction_x;
+		camera_y = (EGraphicCore::SCR_HEIGHT / 2.0f - character_position_y) * EGraphicCore::correction_y;
+		EGraphicCore::matrix_transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
 
-		EWindow::matrix_transform = glm::translate(EWindow::matrix_transform, glm::vec3(-1 + camera_x, -1 + camera_y, 0.0f));
-		EWindow::matrix_transform = glm::scale(EWindow::matrix_transform, glm::vec3(correction_x, correction_y, 1));
+		EGraphicCore::matrix_transform = glm::translate(EGraphicCore::matrix_transform, glm::vec3(-1 + camera_x, -1 + camera_y, 0.0f));
+		EGraphicCore::matrix_transform = glm::scale(EGraphicCore::matrix_transform, glm::vec3(EGraphicCore::correction_x, EGraphicCore::correction_y, 1));
 
-		transformLoc = glGetUniformLocation(EWindow::ourShader->ID, "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(EWindow::matrix_transform));
+		transformLoc = glGetUniformLocation(EGraphicCore::ourShader->ID, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(EGraphicCore::matrix_transform));
 
 		
 		if (true)
@@ -259,10 +265,10 @@
 				/**/
 
 			float col = 1.0f - (path_to_player_matrix->path_matrix[j][i][path_to_player_matrix->current_path_buffer] - 0.0f) / 40.0f;
-			batch->setcolor(col, col, col, 1.0f);
+			EGraphicCore::batch->setcolor(col, col, col, 1.0f);
 
 
-			EWindow::batch->draw_rect(j * PATH_CELL_SIZE + 1.0f, i * PATH_CELL_SIZE + 1.0f, PATH_CELL_SIZE - 2.0f, PATH_CELL_SIZE - 2.0f);
+			EGraphicCore::batch->draw_gabarite(j * PATH_CELL_SIZE + 1.0f, i * PATH_CELL_SIZE + 1.0f, PATH_CELL_SIZE - 2.0f, PATH_CELL_SIZE - 2.0f, EGraphicCore::gabarite_white_pixel);
 		}
 
 		//EWindow::batch->setcolor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -274,19 +280,20 @@
 		for (Entity* e : cluster[j][i]->entity_list)
 		if (!*e->is_dead)
 		{
-			EWindow::batch->setcolor(0.0f, 1.0f, 1.0f, 1.0f);
+			EGraphicCore::batch->setcolor(0.0f, 1.0f, 1.0f, 1.0f);
 
 			//int temp_x = *e->position_x;
-			EWindow::batch->draw_rect(*e->position_x - *e->sprite_size_x / 2.0f, *e->position_y - *e->sprite_size_y / 2.0f, *e->sprite_size_x, *e->sprite_size_y);
+			EGraphicCore::batch->draw_gabarite(*e->position_x - *e->sprite_size_x / 2.0f, *e->position_y - *e->sprite_size_y / 2.0f, *e->sprite_size_x, *e->sprite_size_y, EGraphicCore::gabarite_white_pixel);
 
-			EWindow::batch->setcolor_alpha(EColor::COLOR_RED, 0.5f);
-			EWindow::batch->draw_rama
+			EGraphicCore::batch->setcolor_alpha(EColor::COLOR_RED, 0.5f);
+			EGraphicCore::batch->draw_rama
 			(
 				*e->position_x - *e->collision_size_left,
 				*e->position_y - *e->collision_size_down,
 				*e->collision_size_left + *e->collision_size_right,
 				*e->collision_size_down + *e->collision_size_up,
-				1.0f
+				1.0f,
+				EGraphicCore::gabarite_white_pixel
 			);
 		}
 
@@ -297,10 +304,10 @@
 		{
 			//if (unwalk_matrix[j][i][current_path_buffer]) { if (unwalk_matrix[j][i][current_path_buffer]) }
 			//else { EWindow::batch->setcolor(EColor::COLOR_LIGHT_GRAY); }
-			EWindow::batch->setcolor_lum(EColor::COLOR_RED, 0.2f);
+			EGraphicCore::batch->setcolor_lum(EColor::COLOR_RED, 0.2f);
 			//if (unwalk_matrix[j][i][current_path_buffer])
 
-			EWindow::batch->draw_rect(j * PATH_CELL_SIZE, i * PATH_CELL_SIZE, PATH_CELL_SIZE - 2.0f, PATH_CELL_SIZE - 2.0f);
+			EGraphicCore::batch->draw_gabarite(j * PATH_CELL_SIZE, i * PATH_CELL_SIZE, PATH_CELL_SIZE - 2.0f, PATH_CELL_SIZE - 2.0f, EGraphicCore::gabarite_white_pixel);
 		}
 
 		/*EWindow::batch->setcolor_alpha(EColor::COLOR_GREEN, 0.2f);
@@ -314,10 +321,10 @@
 
 		}*/
 
-		EWindow::batch->setcolor_alpha(EColor::COLOR_BLUE, 0.2f);
+		EGraphicCore::batch->setcolor_alpha(EColor::COLOR_BLUE, 0.2f);
 
-		int cursor_path_x = (int)((EWindow::mouse_x - (SCR_WIDTH / 2.0f - character_position_x)) / PATH_CELL_SIZE);
-		int cursor_path_y = (int)((EWindow::mouse_y - (SCR_HEIGHT / 2.0f - character_position_y)) / PATH_CELL_SIZE);
+		int cursor_path_x = (int)((EWindow::mouse_x - (EGraphicCore::SCR_WIDTH / 2.0f - character_position_x)) / PATH_CELL_SIZE);
+		int cursor_path_y = (int)((EWindow::mouse_y - (EGraphicCore::SCR_HEIGHT / 2.0f - character_position_y)) / PATH_CELL_SIZE);
 
 		if (shoot_cooldown > 0) { shoot_cooldown -= _d; }
 
@@ -329,8 +336,8 @@
 
 			Entity* bullet = new Entity(*link_to_player->position_x, *link_to_player->position_y);
 
-			float dstx = EWindow::mouse_x - (SCR_WIDTH / 2.0f - character_position_x) - character_position_x;
-			float dsty = EWindow::mouse_y - (SCR_HEIGHT / 2.0f - character_position_y) - character_position_y;
+			float dstx = EWindow::mouse_x - (EGraphicCore::SCR_WIDTH / 2.0f - character_position_x) - character_position_x;
+			float dsty = EWindow::mouse_y - (EGraphicCore::SCR_HEIGHT / 2.0f - character_position_y) - character_position_y;
 
 
 			float totaldst = pow (dstx * dstx + dsty * dsty, 0.5f);
@@ -427,11 +434,11 @@
 
 
 	
-		EWindow::batch->setcolor_alpha(EColor::COLOR_WHITE, 0.35f);
+		EGraphicCore::batch->setcolor_alpha(EColor::COLOR_WHITE, 0.35f);
 		for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
 		for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
 		{
-			EWindow::batch->draw_rama(j * CLUSTER_SIZE, i * CLUSTER_SIZE, CLUSTER_SIZE, CLUSTER_SIZE, 2.0f);
+			EGraphicCore::batch->draw_rama(j * CLUSTER_SIZE, i * CLUSTER_SIZE, CLUSTER_SIZE, CLUSTER_SIZE, 2.0f, EGraphicCore::gabarite_white_pixel);
 		}
 
 	}
@@ -449,15 +456,16 @@
 	{
 		//up to down
 		float pseudo_ray = *_b->position_y + *_a->collision_size_down + *_b->collision_size_up;
+		float projection_point = *_a->position_x - (*_a->position_y - pseudo_ray) * *_a->speed_x / *_a->speed_y;
 		if
 		(
 			(*_a->position_y >= pseudo_ray)
 			&&
 			(*_a->next_y <= pseudo_ray)
 			&&
-			(*_a->position_x - (*_a->position_y - pseudo_ray) * *_a->speed_x / *_a->speed_y >= *_b->position_x - *_a->collision_size_right -*_b->collision_size_left )
+			( projection_point >= *_b->position_x - *_a->collision_size_right -*_b->collision_size_left )
 			&&
-			(*_a->position_x - (*_a->position_y - pseudo_ray) * *_a->speed_x / *_a->speed_y <= *_b->position_x + *_a->collision_size_left + *_b->collision_size_right)
+			(projection_point <= *_b->position_x + *_a->collision_size_left + *_b->collision_size_right)
 			//&&
 			//(*_a->collision_size_left + *_b->collision_size_right >= *_a->speed_x * *_a->speed_x / (- *_a->speed_y))
 		)

@@ -10,6 +10,7 @@
 #include "EPathMatrix.h"
 #include "ECluster.h"
 
+#include "ETextureAtlas.h"
 
 const int CLUSTER_SIZE = 500;
 
@@ -42,6 +43,8 @@ public:
 	float shoot_cooldown = 0.5f;
 
 	ECluster* cluster[20][20];
+
+	ETextureAtlas* terrain_atlas = new ETextureAtlas();
 
 	//#include "Entity.h"
 	//std::vector<Entity*> entity_list;
