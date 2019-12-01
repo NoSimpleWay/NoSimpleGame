@@ -4,7 +4,7 @@
 class AIControlPlayer : public AIControl
 {
 public:
-	virtual void update(Entity* _e, float _d);
+	virtual void acceleration_control(Entity* _e, float _d);
 
 	AIControlPlayer();
 	~AIControlPlayer();

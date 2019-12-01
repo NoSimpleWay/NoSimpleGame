@@ -30,7 +30,13 @@ public:
 
 	unsigned int id = 0;
 	unsigned int VBO, VAO, EBO = 0;
-	float vertices[250000];
+
+	unsigned int indices_id = 0;
+	unsigned int indices_order = 0;
+
+	float vertices[500*32];
+	unsigned int indices[500*6];
+
 	void draw_call();
 	void reset();
 

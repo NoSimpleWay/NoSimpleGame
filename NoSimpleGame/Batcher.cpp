@@ -6,19 +6,7 @@
 #include "EColor.h"
 #include "EGabarite.h"
 
-float vertices[80000];
-unsigned int indices[100000];
 
-unsigned int VBO, VAO, EBO;
-
-unsigned int id = 0;
-unsigned int indices_id = 0;
-unsigned int indices_order = 0;
-
-float batch_color_r;
-float batch_color_g;
-float batch_color_b;
-float batch_color_a;
 
 
 

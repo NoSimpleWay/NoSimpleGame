@@ -88,7 +88,7 @@ int main()
 	glfwSetMouseButtonCallback(EWindow::main_window, mouse_button_callback);
 	glfwSetCursorPosCallback(EWindow::main_window, mouse_position_callback);
 	glfwSetCharCallback(EWindow::main_window, char_input_callback);
-
+	//glfwSetMousePos(0, 0);
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
@@ -98,7 +98,7 @@ int main()
 	EWindow::ourShader = new Shader("data/5.1.transform.vs", "data/5.1.transform.fs");
 
 	EWindow::ourShader->use();
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -110,7 +110,7 @@ int main()
 	//batcher initiation
 	EWindow::batch = new Batcher();
 
-	for (int i = 0; i < 15000; i++)
+	for (int i = 0; i < 500; i++)
 	{
 		EWindow::batch->fill_indices();
 	}

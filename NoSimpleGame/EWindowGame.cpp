@@ -75,11 +75,14 @@
 			path_to_player_matrix->path_calculation_cooldown += 0.025f;
 		}
 
+		float reverse_delta = 1 - _d;
+		float delta_correction = _d * (1.0f + reverse_delta * reverse_delta);
+
 		//change cluster master
 		for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
 		for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
 		for (int wtf = 0; wtf < cluster[j][i]->entity_list.size(); wtf++)
-		if (!*cluster[j][i]->entity_list.at(wtf)->already_updated)
+		if ((!*cluster[j][i]->entity_list.at(wtf)->already_updated) && (!*cluster[j][i]->entity_list.at(wtf)->is_dead))
 		{
 			Entity* e = cluster[j][i]->entity_list.at(wtf);
 			*e->already_updated = true;
@@ -87,12 +90,23 @@
 			path_to_player_matrix->blocked_by_entity[(int)(*e->position_x / PATH_CELL_SIZE)][(int)(*e->position_y / PATH_CELL_SIZE)][path_to_player_matrix->back_path_buffer] = false;
 			path_to_player_matrix->blocked_by_entity[(int)(*e->position_x / PATH_CELL_SIZE)][(int)(*e->position_y / PATH_CELL_SIZE)][path_to_player_matrix->current_path_buffer] = false;
 
+			
+
 			//entity actions AI
 			if (e->AI_control != NULL)
 			{
 				e->AI_control->default_update(e, _d);
 				e->AI_control->update(e, _d);
+
+				e->AI_control->acceleration_control(e, delta_correction);
 			}
+
+
+
+
+
+			*e->next_x = *e->position_x + *e->speed_x * _d; if (*e->next_x < 10) { *e->next_x = 10; } if (*e->next_x > 20.0 * CLUSTER_SIZE) { *e->next_x = 20.0f * CLUSTER_SIZE - 10.0f; }
+			*e->next_y = *e->position_y + *e->speed_y * _d; if (*e->next_y < 10) { *e->next_y = 10; } if (*e->next_y > 20.0 * CLUSTER_SIZE) { *e->next_y = 20.0f * CLUSTER_SIZE - 10.0f; }
 
 			bool collision_detect = false;
 			int collision_side = -1;
@@ -101,15 +115,24 @@
 			for (int b = i - 1; b <= i + 1; b++)
 			if ((a >= 0) && (a < 20) && (b>=0) && (b<20))
 			for (int f = 0; f < cluster[a][b]->entity_list.size(); f++)
+			if (!*cluster[a][b]->entity_list.at(f)->is_dead)
 			{
 				Entity* e2 = cluster[a][b]->entity_list.at(f);
 
+
+
 				if ((*e->speed_x * *e->speed_x > 0) || (*e->speed_y * *e->speed_y > 0))
-				{collision_side = check_collision(e, e2);}
+				{
+					collision_side = check_collision(e, e2);
+				}
 
 				if (collision_side != -1)
 				{
-					
+					if (*e->is_bullet)
+					{
+						e->default_collision_action(e, e2, collision_side);
+					}
+
 					collision_detect = true;
 
 					//*e->speed_x = 0;
@@ -173,7 +196,7 @@
 
 			if (!collision_detect) { e->move(_d); }
 
-			float friction_multiplier = pow(0.05f, _d);
+			float friction_multiplier = pow(*e->friction, _d);
 
 			*e->speed_x *= friction_multiplier;
 			*e->speed_y *= friction_multiplier;
@@ -226,7 +249,7 @@
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(EWindow::matrix_transform));
 
 		
-		if (false)
+		if (true)
 		for (int i = path_to_player_matrix->path_matrix_point_start_y; i < path_to_player_matrix->path_matrix_point_end_y; i++)
 		for (int j = path_to_player_matrix->path_matrix_point_start_x; j < path_to_player_matrix->path_matrix_point_end_x; j++)
 		{
@@ -239,7 +262,7 @@
 			batch->setcolor(col, col, col, 1.0f);
 
 
-			EWindow::batch->draw_rect_with_uv(j * PATH_CELL_SIZE + 1.0f, i * PATH_CELL_SIZE + 1.0f, PATH_CELL_SIZE - 2.0f, PATH_CELL_SIZE - 2.0f, 0, 0, 1, 1);
+			EWindow::batch->draw_rect(j * PATH_CELL_SIZE + 1.0f, i * PATH_CELL_SIZE + 1.0f, PATH_CELL_SIZE - 2.0f, PATH_CELL_SIZE - 2.0f);
 		}
 
 		//EWindow::batch->setcolor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -249,11 +272,12 @@
 		for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
 		for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
 		for (Entity* e : cluster[j][i]->entity_list)
+		if (!*e->is_dead)
 		{
 			EWindow::batch->setcolor(0.0f, 1.0f, 1.0f, 1.0f);
 
 			//int temp_x = *e->position_x;
-			EWindow::batch->draw_rect_with_uv(*e->position_x - 12.5f, *e->position_y - 12.5f, 25.0f, 25.0f, 0, 0, 1, 1);
+			EWindow::batch->draw_rect(*e->position_x - *e->sprite_size_x / 2.0f, *e->position_y - *e->sprite_size_y / 2.0f, *e->sprite_size_x, *e->sprite_size_y);
 
 			EWindow::batch->setcolor_alpha(EColor::COLOR_RED, 0.5f);
 			EWindow::batch->draw_rama
@@ -299,7 +323,7 @@
 
 		if ((EWindow::LMB) && (shoot_cooldown <= 0))
 		{
-			shoot_cooldown += 0.5f;
+			shoot_cooldown += 0.1f;
 			//path_to_player_matrix->unwalk_matrix[cursor_path_x][cursor_path_y][0] = true;
 			//path_to_player_matrix->unwalk_matrix[cursor_path_x][cursor_path_y][1] = true;
 
@@ -311,9 +335,20 @@
 
 			float totaldst = pow (dstx * dstx + dsty * dsty, 0.5f);
 
-			*bullet->speed_x = 100.0f * dstx / totaldst;
-			*bullet->speed_y = 100.0f * dsty / totaldst;
-			*bullet->mass = 10.0f;
+			
+
+			*bullet->speed_x = 5000.0f * dstx / totaldst;
+			*bullet->speed_y = 5000.0f * dsty / totaldst;
+			*bullet->mass = 0.001f;
+			*bullet->friction = 0.9f;
+			*bullet->is_bullet = true;
+			*bullet->sprite_size_x = 5.0f;
+			*bullet->sprite_size_y = 5.0f;
+			*bullet->collision_size_up = 2.5f;
+			*bullet->collision_size_down = 2.5f;
+			*bullet->collision_size_right = 2.5f;
+			*bullet->collision_size_left = 2.5f;
+			*bullet->step_cooldown = 0.2f;
 
 			bullet->link_to_path_matrix = path_to_player_matrix;
 
@@ -418,11 +453,11 @@
 		(
 			(*_a->position_y >= pseudo_ray)
 			&&
-			(*_a->position_y + *_a->speed_y <= pseudo_ray)
+			(*_a->next_y <= pseudo_ray)
 			&&
-			(*_a->position_x + (*_a->position_y - pseudo_ray) * *_a->speed_x / *_a->speed_y >= *_b->position_x - *_a->collision_size_right -*_b->collision_size_left )
+			(*_a->position_x - (*_a->position_y - pseudo_ray) * *_a->speed_x / *_a->speed_y >= *_b->position_x - *_a->collision_size_right -*_b->collision_size_left )
 			&&
-			(*_a->position_x + (*_a->position_y - pseudo_ray) * *_a->speed_x / *_a->speed_y <= *_b->position_x + *_a->collision_size_left + *_b->collision_size_right)
+			(*_a->position_x - (*_a->position_y - pseudo_ray) * *_a->speed_x / *_a->speed_y <= *_b->position_x + *_a->collision_size_left + *_b->collision_size_right)
 			//&&
 			//(*_a->collision_size_left + *_b->collision_size_right >= *_a->speed_x * *_a->speed_x / (- *_a->speed_y))
 		)
@@ -435,11 +470,11 @@
 		(
 			(*_a->position_y <= pseudo_ray)// first point position
 			&&
-			(*_a->position_y + *_a->speed_y >= pseudo_ray)//second point position
+			(*_a->next_y >= pseudo_ray)//second point position
+			&&//42 + (42 - 57) * -1 / 1 = 42 - 15 * -1 = 42 + 15
+			(*_a->position_x - (*_a->position_y - pseudo_ray) * *_a->speed_x / *_a->speed_y >= *_b->position_x - *_a->collision_size_right -*_b->collision_size_left )
 			&&
-			(*_a->position_x + (*_a->position_y - pseudo_ray) * *_a->speed_x / *_a->speed_y >= *_b->position_x - *_a->collision_size_right -*_b->collision_size_left )
-			&&
-			(*_a->position_x + (*_a->position_y - pseudo_ray) * *_a->speed_x / *_a->speed_y <= *_b->position_x + *_a->collision_size_left + *_b->collision_size_right)
+			(*_a->position_x - (*_a->position_y - pseudo_ray) * *_a->speed_x / *_a->speed_y <= *_b->position_x + *_a->collision_size_left + *_b->collision_size_right)
 			//&&
 			//(*_a->collision_size_left + *_b->collision_size_right >= *_a->speed_x * *_a->speed_x / (- *_a->speed_y))
 		)
@@ -452,11 +487,11 @@
 		(
 			(*_a->position_x <= pseudo_ray)
 			&&
-			(*_a->position_x + *_a->speed_x >= pseudo_ray)
+			(*_a->next_x >= pseudo_ray)
+			&&//			-50
+			(*_a->position_y - (*_a->position_x - pseudo_ray) * *_a->speed_y / *_a->speed_x >= *_b->position_y - *_a->collision_size_up - *_b->collision_size_down)
 			&&
-			(*_a->position_y + (*_a->position_x - pseudo_ray) * *_a->speed_y / *_a->speed_x >= *_b->position_y - *_a->collision_size_up - *_b->collision_size_down)
-			&&
-			(*_a->position_y + (*_a->position_x - pseudo_ray) * *_a->speed_y / *_a->speed_x <= *_b->position_y + *_a->collision_size_down + *_b->collision_size_up)
+			(*_a->position_y - (*_a->position_x - pseudo_ray) * *_a->speed_y / *_a->speed_x <= *_b->position_y + *_a->collision_size_down + *_b->collision_size_up)
 			//&&
 			//(*_a->collision_size_left + *_b->collision_size_right >= *_a->speed_x * *_a->speed_x / (- *_a->speed_y))
 		)
@@ -470,11 +505,11 @@
 		(
 		(*_a->position_x >= pseudo_ray)
 		&&
-		(*_a->position_x + *_a->speed_x <= pseudo_ray)
+		(*_a->next_x <= pseudo_ray)
+		&&//33	-	(61 - 48) * (1 / -1) = 33 - 13 * -1 = 33 + 13 = 46
+		(*_a->position_y - (*_a->position_x - pseudo_ray) * *_a->speed_y / *_a->speed_x >= *_b->position_y - *_a->collision_size_up - *_b->collision_size_down)
 		&&
-		(*_a->position_y + (*_a->position_x - pseudo_ray) * *_a->speed_y / *_a->speed_x >= *_b->position_y - *_a->collision_size_up - *_b->collision_size_down)
-		&&
-		(*_a->position_y + (*_a->position_x - pseudo_ray) * *_a->speed_y / *_a->speed_x <= *_b->position_y + *_a->collision_size_down + *_b->collision_size_up)
+		(*_a->position_y - (*_a->position_x - pseudo_ray) * *_a->speed_y / *_a->speed_x <= *_b->position_y + *_a->collision_size_down + *_b->collision_size_up)
 		//&&
 		//(*_a->collision_size_left + *_b->collision_size_right >= *_a->speed_x * *_a->speed_x / (- *_a->speed_y))
 		)

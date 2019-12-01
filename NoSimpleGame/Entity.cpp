@@ -27,9 +27,26 @@ void Entity::move(float _d)
 	prev_cluster_position_x = (int)(*position_x / CLUSTER_SIZE);
 	prev_cluster_position_y = (int)(*position_y / CLUSTER_SIZE);
 
-	*position_x += *speed_x;
-	*position_y += *speed_y;
+	/*if (*is_bullet)
+	{
+		if (*step_cooldown > 0)
+		{
+			*step_cooldown -= _d;
 
+			if (*step_cooldown < 0)
+			{
+				*step_cooldown += 0.2f;
+
+				*position_x = *next_x;
+				*position_y = *next_y;
+			}
+		}
+	}
+	else
+	{*/
+		*position_x = *next_x;
+		*position_y = *next_y;
+	//}
 
 	new_cluster_position_x = (int)(*position_x / CLUSTER_SIZE);
 	new_cluster_position_y = (int)(*position_y / CLUSTER_SIZE);
@@ -64,6 +81,17 @@ void Entity::move_relative(float _x, float _y)
 
 	new_cluster_position_x = (int)(*position_x / CLUSTER_SIZE);
 	new_cluster_position_y = (int)(*position_y / CLUSTER_SIZE);
+}
+
+void Entity::default_collision_action(Entity* _a, Entity* _b, int _side)
+{
+	*_a->is_dead = true;
+
+	*_b->life -= *_a->bullet_damage;
+	if (*_b->life <= 0) { *_b->is_dead = true; }
+	//*_b->is_dead = true;
+
+	//_b
 }
 
 Entity::Entity()

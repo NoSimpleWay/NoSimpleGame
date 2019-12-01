@@ -15,6 +15,21 @@ public:
 	float *speed_x;
 	float *speed_y;
 
+	float* acceleration = new float(200.0f);
+	float* friction = new float(0.1f);
+
+	float* step_cooldown = new float(0.0f);
+
+	/////////////////
+	float* life = new float(100.0f);
+
+	/////////////////
+	float* bullet_damage = new float(10.0f);
+
+
+	float* sprite_size_x = new float(25.0f);
+	float* sprite_size_y = new float(25.0f);
+
 	//AIControl control;
 	//AIControlMovableEnemy enemy_control;
 
@@ -31,6 +46,11 @@ public:
 	void move_to(float _x, float _y);
 	void move_relative(float _x, float _y);
 
+	void default_collision_action(Entity* _a, Entity* _b, int _side);
+
+	bool *is_bullet = new bool(false);
+	bool *is_dead = new bool(false);
+
 	int prev_cluster_position_x;
 	int prev_cluster_position_y;
 
@@ -40,6 +60,9 @@ public:
 	bool* already_updated = new (bool){ false };
 
 	float* mass = new float (100.0f);
+
+	float* next_x = new float(0.0f);
+	float* next_y = new float(0.0f);
 
 	float *collision_size_up =			new float(13.0f);
 	float *collision_size_right =		new float(13.0f);
