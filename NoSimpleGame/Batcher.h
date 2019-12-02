@@ -12,7 +12,10 @@ public:
 	void draw_rect_position(float _x, float _y, float _x2, float _y2);
 	void draw_rect_without_color(float _x, float _y, float _w, float _h, int _tx, int _ty);
 	void draw_with_custom_uv(float _x, float _y, float _w, float _h, float _start_x, float _start_y, float _end_x, float _end_y);
+
 	void draw_gabarite(float _x, float _y, float _w, float _h, EGabarite* _g);
+	void draw_gabarite_with_offset(float _x, float _y, float _w, float _h, float _offset_x, float _offset_y, float _offset_end_x, float _offset_end_y,  EGabarite* _g);
+
 	void fill_indices();
 
 	void setcolor_255(int _r, int _g, int _b, int _a);

@@ -28,6 +28,7 @@ std::vector<EGabarite*> EGraphicCore::gabarite_list;
 //std::vector<EGabarite*> EGraphicCore::gabarite_collection;
 
 EGabarite* EGraphicCore::gabarite_white_pixel;
+EGabarite* EGraphicCore::gabarite_tileset;
 
 void EGraphicCore::load_texture(char const* _path, int _id)
 {

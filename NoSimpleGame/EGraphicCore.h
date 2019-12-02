@@ -40,6 +40,7 @@ public:
 	//static std::vector<EGabarite*> gabarite_collection;
 
 	static EGabarite* gabarite_white_pixel;
+	static EGabarite* gabarite_tileset;
 
 	EGraphicCore();
 	~EGraphicCore();

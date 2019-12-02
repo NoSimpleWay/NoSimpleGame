@@ -16,6 +16,20 @@
 		{
 			cluster[j][i] = new ECluster();
 		}
+
+		//generate tileset
+		for (int i = 0; i < 200; i++)
+		for (int j = 0; j < 200; j++)
+		{
+			int selected_tile_x = rand() % 6;
+			int selected_tile_y = rand() % 6 + 4;
+
+			tilemap_uv_start_x[j][i] = 50.0f * selected_tile_x / 4096.0f;
+			tilemap_uv_start_y[j][i] = 50.0f * selected_tile_y / 4096.0f;
+
+			tilemap_uv_end_x[j][i] = (50.0f * selected_tile_x + 50.0f) / 4096.0f;
+			tilemap_uv_end_y[j][i] = (50.0f * selected_tile_y + 50.0f) / 4096.0f;
+		}
 		
 		for (int i = 0; i < 40; i++)
 		{
@@ -41,8 +55,11 @@
 		put_entity_to_cluster(link_to_player);
 
 		std::cout << "game window created" << std::endl;
-		
+
+		EGraphicCore::gabarite_tileset = ETextureAtlas::put_texture_to_atlas("data/tileset.png", terrain_atlas);
 		EGraphicCore::gabarite_white_pixel = ETextureAtlas::put_texture_to_atlas("data/white_pixel.png", terrain_atlas);
+
+
 		EGraphicCore::gabarite_white_pixel->x += 1 / 4096.0f;
 		EGraphicCore::gabarite_white_pixel->y += 1 / 4096.0f;
 		
@@ -244,8 +261,8 @@
 
 	void EWindowGame::draw(float _d)
 	{
-		camera_x = (EGraphicCore::SCR_WIDTH / 2.0f - character_position_x) * EGraphicCore::correction_x;
-		camera_y = (EGraphicCore::SCR_HEIGHT / 2.0f - character_position_y) * EGraphicCore::correction_y;
+		camera_x = round(EGraphicCore::SCR_WIDTH / 2.0f - character_position_x) * EGraphicCore::correction_x;
+		camera_y = round(EGraphicCore::SCR_HEIGHT / 2.0f - character_position_y) * EGraphicCore::correction_y;
 		EGraphicCore::matrix_transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
 
 		EGraphicCore::matrix_transform = glm::translate(EGraphicCore::matrix_transform, glm::vec3(-1 + camera_x, -1 + camera_y, 0.0f));
@@ -254,8 +271,26 @@
 		transformLoc = glGetUniformLocation(EGraphicCore::ourShader->ID, "transform");
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(EGraphicCore::matrix_transform));
 
+		EGraphicCore::batch->setcolor(EColor::COLOR_WHITE);
 		
-		if (true)
+		for (int i = path_to_player_matrix->path_matrix_point_start_y; i < path_to_player_matrix->path_matrix_point_end_y; i++)
+		for (int j = path_to_player_matrix->path_matrix_point_start_x; j < path_to_player_matrix->path_matrix_point_end_x; j++)
+		{
+			EGraphicCore::batch->draw_gabarite_with_offset
+			(
+				j * 50.0f,
+				i * 50.0f,
+				50.0f,
+				50.0f,
+				tilemap_uv_start_x[j][i],
+				tilemap_uv_start_y[j][i],
+				tilemap_uv_end_x[j][i],
+				tilemap_uv_end_y[j][i],
+				EGraphicCore::gabarite_tileset
+			);
+		}
+
+		if (false)
 		for (int i = path_to_player_matrix->path_matrix_point_start_y; i < path_to_player_matrix->path_matrix_point_end_y; i++)
 		for (int j = path_to_player_matrix->path_matrix_point_start_x; j < path_to_player_matrix->path_matrix_point_end_x; j++)
 		{
@@ -434,18 +469,28 @@
 
 
 	
-		EGraphicCore::batch->setcolor_alpha(EColor::COLOR_WHITE, 0.35f);
+		/*
+		EGraphicCore::batch->setcolor_alpha(EColor::COLOR_WHITE, 0.15f);
 		for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
 		for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
 		{
-			EGraphicCore::batch->draw_rama(j * CLUSTER_SIZE, i * CLUSTER_SIZE, CLUSTER_SIZE, CLUSTER_SIZE, 2.0f, EGraphicCore::gabarite_white_pixel);
+			EGraphicCore::batch->draw_rama(j * CLUSTER_SIZE, i * CLUSTER_SIZE, CLUSTER_SIZE, CLUSTER_SIZE, 1.0f, EGraphicCore::gabarite_white_pixel);
+		}*/
+
+		if (glfwGetKey(EWindow::main_window, GLFW_KEY_END) == GLFW_PRESS)
+		{
+			EGraphicCore::batch->setcolor(EColor::COLOR_GRAY);
+			EGraphicCore::batch->draw_gabarite(0, 0, 4096.0f, 4069.0f, EGraphicCore::gabarite_white_pixel);
+
+			EGraphicCore::batch->setcolor(EColor::COLOR_WHITE);
+			EGraphicCore::batch->draw_rect(0, 0, 4096.0f, 4096.0f);
 		}
 
 	}
 
 	void EWindowGame::put_entity_to_cluster(Entity* _e)
 	{
-		std::cout << "try place entity to cluster " << (int)(*_e->position_x / CLUSTER_SIZE) << " | " << (int)(*_e->position_y / CLUSTER_SIZE) << std::endl;
+		//std::cout << "try place entity to cluster " << (int)(*_e->position_x / CLUSTER_SIZE) << " | " << (int)(*_e->position_y / CLUSTER_SIZE) << std::endl;
 		cluster[(int)(*_e->position_x / CLUSTER_SIZE)][(int)(*_e->position_y / CLUSTER_SIZE)]->entity_list.push_back(_e);
 
 		_e->prev_cluster_position_x = (int)(*_e->position_x / CLUSTER_SIZE);

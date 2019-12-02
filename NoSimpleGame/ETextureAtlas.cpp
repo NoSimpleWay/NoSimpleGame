@@ -2,17 +2,30 @@
 
 bool ETextureAtlas::can_place_here(int _x, int _y, int _w, int _h)
 {
-	return false;
+	for (int j = _x; j <= _x + _w; j++)
+	for (int i = _y; i <= _y + _h; i++)
+	{
+		if ((j >= 1024) || (i >= 1024))
+		{
+			return false;
+		}
+
+		if (!free_space[j][i]) { return false; }
+	}
+
+	return true;
 }
 
 EGabarite* ETextureAtlas::put_texture_to_atlas(std::string _name, ETextureAtlas* _ta)
 {
 
+
+
 	glViewport(0, 0, 4096, 4096);
 	glBindFramebuffer(GL_FRAMEBUFFER, _ta->framebuffer);
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	//glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	//glClear(GL_COLOR_BUFFER_BIT);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -36,12 +49,34 @@ EGabarite* ETextureAtlas::put_texture_to_atlas(std::string _name, ETextureAtlas*
 
 	EGraphicCore::load_texture(_name.c_str(), 0);
 
+	int place_x = 0;
+	int place_y = 0;
+	for (int x = 0; x < 1024; x++)
+	for (int y = 0; y < 1024; y++)
+	{
+		if (_ta->can_place_here(x, y, (int)(EGraphicCore::last_texture_w / 4.0f), (int)(EGraphicCore::last_texture_h / 4.0f)))
+		{
+			place_x = x * 4;
+			place_y = y * 4;
 
+			x = 99999;
+			y = 99999;
+		}
+	}
+
+	for (int x = (int)(place_x / 4.0f); x < (int)(EGraphicCore::last_texture_w / 4.0f) + 1; x++)
+	for (int y = (int)(place_y / 4.0f); y < (int)(EGraphicCore::last_texture_h / 4.0f) + 1; y++)
+	if ((x < 1024) && (y < 1024))
+	{
+		_ta->free_space[x][y] = false;
+	}
 
 	EGraphicCore::batch->reset();
-	EGraphicCore::batch->draw_rect(0, 0, EGraphicCore::last_texture_w, EGraphicCore::last_texture_h);
+	EGraphicCore::batch->draw_rect(place_x, place_y, EGraphicCore::last_texture_w, EGraphicCore::last_texture_h);
 	EGraphicCore::batch->reinit();
 	EGraphicCore::batch->draw_call();
+
+	std::cout << "draw to x=" << place_x << " y=" << place_y << std::endl;
 
 	EGabarite* duplicate_gabarite = NULL;
 
@@ -57,7 +92,7 @@ EGabarite* ETextureAtlas::put_texture_to_atlas(std::string _name, ETextureAtlas*
 	EGabarite* new_gabarite = NULL;
 	if (duplicate_gabarite == NULL)
 	{
-		new_gabarite = new EGabarite(_name, 0.0f / 4096.0f, 0.0f / 4096.0f, EGraphicCore::last_texture_w / 4096.0f, EGraphicCore::last_texture_h / 4096.0f);
+		new_gabarite = new EGabarite(_name, place_x / 4096.0f, place_y / 4096.0f, EGraphicCore::last_texture_w / 4096.0f, EGraphicCore::last_texture_h / 4096.0f);
 	}
 	else
 	{
@@ -94,6 +129,10 @@ EGabarite* ETextureAtlas::put_texture_to_atlas(std::string _name, ETextureAtlas*
 
 ETextureAtlas::ETextureAtlas()
 {
+	for (int j = 0; j < 1024; j++)
+	for (int i = 0; i < 1024; i++)
+	{free_space[j][i] = true;}
+
 	//glGenTextures(1, &ETexture::texture[1]);
 
 	glGenFramebuffers(1, &framebuffer);

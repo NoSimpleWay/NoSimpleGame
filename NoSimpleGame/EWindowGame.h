@@ -35,6 +35,11 @@ public:
 	int cluster_calculator_up_border = 0;
 	int cluster_calculator_down_border = 0;
 
+	float tilemap_uv_start_x[200][200];
+	float tilemap_uv_start_y[200][200];
+
+	float tilemap_uv_end_x[200][200];
+	float tilemap_uv_end_y[200][200];
 
 
 	float camera_x = 0;

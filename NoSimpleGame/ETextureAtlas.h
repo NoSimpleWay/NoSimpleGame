@@ -10,7 +10,7 @@ public:
 	unsigned int textureColorbuffer;
 	unsigned int rbo;
 
-	bool free_space[1000][1000];
+	bool free_space[1024][1024];
 
 	bool can_place_here(int _x, int _y, int _w, int _h);
 
