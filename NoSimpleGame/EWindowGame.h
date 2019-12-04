@@ -63,6 +63,7 @@ public:
 	virtual void draw(float _d);
 
 	void put_entity_to_cluster(Entity* _e);
+	void put_bullet_to_cluster(Entity* _e);
 
 	int check_collision(Entity* _a, Entity* _b);
 };
