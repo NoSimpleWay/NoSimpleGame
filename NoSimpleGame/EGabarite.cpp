@@ -2,6 +2,8 @@
 
 EGabarite::EGabarite(std::string _name, float _x, float _y, float _size_x, float _size_y)
 {
+	name = _name;
+
 	x = _x;
 	y = _y;
 

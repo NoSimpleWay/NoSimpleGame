@@ -8,67 +8,45 @@
 
 	EWindowGame::EWindowGame() : EWindow()
 	{
-		path_to_player_matrix = new EPathMatrix();
-
-		//generate clusters
-		for (int i = 0; i < 20; i++)
-		for (int j = 0; j < 20; j++)
-		{
-			cluster[j][i] = new ECluster();
-		}
-
-		//generate tileset
-		for (int i = 0; i < 200; i++)
-		for (int j = 0; j < 200; j++)
-		{
-			int selected_tile_x = rand() % 6;
-			int selected_tile_y = rand() % 6 + 4;
-
-			tilemap_uv_start_x[j][i] = 50.0f * selected_tile_x / 4096.0f;
-			tilemap_uv_start_y[j][i] = 50.0f * selected_tile_y / 4096.0f;
-
-			tilemap_uv_end_x[j][i] = (50.0f * selected_tile_x + 50.0f) / 4096.0f;
-			tilemap_uv_end_y[j][i] = (50.0f * selected_tile_y + 50.0f) / 4096.0f;
-		}
 		
-		for (int i = 0; i < 40; i++)
-		{
-			Entity* en = new Entity(rand() % 2400 +100, rand() % 2400 + 100);
-			
-			//*en->collision_size_right -= 10.0f * i;
-
-			en->link_to_path_matrix = path_to_player_matrix;
-			en->AI_control = Entity::static_control_movable_enemy;
-
-			put_entity_to_cluster(en);
-			//entity_list.push_back(en);
-			//entity_list.push_back(new Entity(300.0f, 150.0f));
-			//entity_list.push_back(new Entity(400.0f, 150.0f));
-		}
-
-		link_to_player = new Entity(rand() % 100 + 100.0f, rand() % 100 + 100.0f);
-
-		*link_to_player->mass = 1000.0f;
-		link_to_player->link_to_path_matrix = path_to_player_matrix;
-		link_to_player->AI_control = new AIControlPlayer();
-
-		put_entity_to_cluster(link_to_player);
-
-		std::cout << "game window created" << std::endl;
-
-		EGraphicCore::gabarite_tileset = ETextureAtlas::put_texture_to_atlas("data/tileset.png", terrain_atlas);
-		EGraphicCore::gabarite_white_pixel = ETextureAtlas::put_texture_to_atlas("data/white_pixel.png", terrain_atlas);
-
-
-		EGraphicCore::gabarite_white_pixel->x += 1 / 4096.0f;
-		EGraphicCore::gabarite_white_pixel->y += 1 / 4096.0f;
-		
-		EGraphicCore::gabarite_white_pixel->x2 -= 1 / 4096.0f;
-		EGraphicCore::gabarite_white_pixel->y2 -= 1 / 4096.0f;
 	}
 
 	void EWindowGame::update(float _d)
 	{
+		if (shoot_cooldown > 0) { shoot_cooldown -= _d; }
+
+		if ((EWindow::LMB) && (shoot_cooldown <= 0))
+		{
+			shoot_cooldown += 0.1f;
+
+			Entity* bullet = new Entity(*link_to_player->position_x, *link_to_player->position_y);
+
+			float dstx = EWindow::mouse_x - (EGraphicCore::SCR_WIDTH / 2.0f - character_position_x) - character_position_x;
+			float dsty = EWindow::mouse_y - (EGraphicCore::SCR_HEIGHT / 2.0f - character_position_y) - character_position_y;
+
+
+			float totaldst = pow(dstx * dstx + dsty * dsty, 0.5f);
+
+
+
+			*bullet->speed_x = 5000.0f * dstx / totaldst;
+			*bullet->speed_y = 5000.0f * dsty / totaldst;
+			*bullet->mass = 0.001f;
+			*bullet->friction = 0.9f;
+			*bullet->is_bullet = true;
+			*bullet->sprite_size_x = 5.0f;
+			*bullet->sprite_size_y = 5.0f;
+			*bullet->collision_size_up = 2.5f;
+			*bullet->collision_size_down = 2.5f;
+			*bullet->collision_size_right = 2.5f;
+			*bullet->collision_size_left = 2.5f;
+			*bullet->step_cooldown = 0.2f;
+
+			bullet->link_to_path_matrix = path_to_player_matrix;
+
+			put_bullet_to_cluster(bullet);
+		}
+
 		character_position_x = *link_to_player->position_x;
 		character_position_y = *link_to_player->position_y;
 
@@ -323,7 +301,6 @@
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(EGraphicCore::matrix_transform));
 
 		EGraphicCore::batch->setcolor(EColor::COLOR_WHITE);
-		
 
 		//ground tileset
 		for (int i = path_to_player_matrix->path_matrix_point_start_y; i < path_to_player_matrix->path_matrix_point_end_y; i++)
@@ -362,26 +339,75 @@
 		}
 
 		//entity draw
-		for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
-		for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
-		for (Entity* e : cluster[j][i]->entity_list)
-		if (!*e->is_dead)
+		for (int i = cluster_calculator_up_border; i >= cluster_calculator_down_border; i--)
 		{
-			EGraphicCore::batch->setcolor(0.0f, 1.0f, 1.0f, 1.0f);
+			//reset_draw_buffer
+			draw_buffer.clear();
 
-			//int temp_x = *e->position_x;
-			EGraphicCore::batch->draw_gabarite(*e->position_x - *e->sprite_size_x / 2.0f, *e->position_y - *e->sprite_size_y / 2.0f, *e->sprite_size_x, *e->sprite_size_y, EGraphicCore::gabarite_white_pixel);
+			//fill draw_buffer
+			for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
+			for (Entity* e : cluster[j][i]->entity_list)
+			if (!*e->is_dead)
+			{
+				draw_buffer.push_back(e);
+			}
 
-			EGraphicCore::batch->setcolor_alpha(EColor::COLOR_RED, 0.5f);
-			EGraphicCore::batch->draw_rama
-			(
-				*e->position_x - *e->collision_size_left,
-				*e->position_y - *e->collision_size_down,
-				*e->collision_size_left + *e->collision_size_right,
-				*e->collision_size_down + *e->collision_size_up,
-				1.0f,
-				EGraphicCore::gabarite_white_pixel
-			);
+			int swap_count = 0;
+			bool already_sort = false;
+
+			//sort draw_buffer
+			while ((!already_sort) && (swap_count < 200) && (draw_buffer.size() > 0))
+			{
+				already_sort = true;
+
+				for (int k = 0; k < draw_buffer.size() - 1; k++)
+				{
+					Entity* e = draw_buffer.at(k);
+					Entity* e_next = draw_buffer.at(k + 1);
+
+					if (*e->position_y < *e_next->position_y)
+					{
+						swap_count++;
+						already_sort = false;
+						//Entity* swap = e;
+						draw_buffer.at(k) = e_next;
+						draw_buffer.at(k + 1) = e;
+						//EGraphicCore::batch->setcolor(0.0f, 1.0f, 1.0f, 1.0f);
+					}
+				}
+
+				if (swap_count > 100)
+				{
+					std::cout << "Too many swaps" << std::endl;
+				}
+			}
+
+			for (Entity* e : draw_buffer)
+			{
+				
+
+				//int temp_x = *e->position_x;
+				for (ESprite* s : e->sprite_list)
+				{
+					EGraphicCore::batch->setcolor(e->color);
+
+					//std::cout << *s->sprite_x << std::endl;
+					EGraphicCore::batch->draw_gabarite(*e->position_x + *s->sprite_x, *e->position_y + *s->sprite_y, *s->sprite_size_x, *s->sprite_size_y, s->gabarite);
+
+					EGraphicCore::batch->setcolor_alpha(EColor::COLOR_RED, 0.5f);
+					EGraphicCore::batch->draw_rama
+					(
+						*e->position_x - *e->collision_size_left,
+						*e->position_y - *e->collision_size_down,
+						*e->collision_size_left + *e->collision_size_right,
+						*e->collision_size_down + *e->collision_size_up,
+						1.0f,
+						EGraphicCore::gabarite_white_pixel
+					);
+				}
+			}
+
+			
 		}
 
 		for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
@@ -425,40 +451,7 @@
 		int cursor_path_x = (int)((EWindow::mouse_x - (EGraphicCore::SCR_WIDTH / 2.0f - character_position_x)) / PATH_CELL_SIZE);
 		int cursor_path_y = (int)((EWindow::mouse_y - (EGraphicCore::SCR_HEIGHT / 2.0f - character_position_y)) / PATH_CELL_SIZE);
 
-		if (shoot_cooldown > 0) { shoot_cooldown -= _d; }
-
-		if ((EWindow::LMB) && (shoot_cooldown <= 0))
-		{
-			shoot_cooldown += 0.1f;
-
-			Entity* bullet = new Entity(*link_to_player->position_x, *link_to_player->position_y);
-
-			float dstx = EWindow::mouse_x - (EGraphicCore::SCR_WIDTH / 2.0f - character_position_x) - character_position_x;
-			float dsty = EWindow::mouse_y - (EGraphicCore::SCR_HEIGHT / 2.0f - character_position_y) - character_position_y;
-
-
-			float totaldst = pow (dstx * dstx + dsty * dsty, 0.5f);
-
-			
-
-			*bullet->speed_x = 5000.0f * dstx / totaldst;
-			*bullet->speed_y = 5000.0f * dsty / totaldst;
-			*bullet->mass = 0.001f;
-			*bullet->friction = 0.9f;
-			*bullet->is_bullet = true;
-			*bullet->sprite_size_x = 5.0f;
-			*bullet->sprite_size_y = 5.0f;
-			*bullet->collision_size_up = 2.5f;
-			*bullet->collision_size_down = 2.5f;
-			*bullet->collision_size_right = 2.5f;
-			*bullet->collision_size_left = 2.5f;
-			*bullet->step_cooldown = 0.2f;
-
-			bullet->link_to_path_matrix = path_to_player_matrix;
-
-			put_bullet_to_cluster(bullet);
-		}
-
+		
 		if (EWindow::RMB)
 		{
 			path_to_player_matrix->unwalk_matrix[cursor_path_x][cursor_path_y][0] = false;
@@ -577,6 +570,67 @@
 		}
 
 		return -1;
+	}
+
+	void EWindowGame::init()
+	{
+		path_to_player_matrix = new EPathMatrix();
+
+		//generate clusters
+		for (int i = 0; i < 20; i++)
+			for (int j = 0; j < 20; j++)
+			{
+				cluster[j][i] = new ECluster();
+			}
+
+		//generate tileset
+		for (int i = 0; i < 200; i++)
+			for (int j = 0; j < 200; j++)
+			{
+				int selected_tile_x = rand() % 6;
+				int selected_tile_y = rand() % 6 + 4;
+
+				tilemap_uv_start_x[j][i] = 50.0f * selected_tile_x / 4096.0f;
+				tilemap_uv_start_y[j][i] = 50.0f * selected_tile_y / 4096.0f;
+
+				tilemap_uv_end_x[j][i] = (50.0f * selected_tile_x + 50.0f) / 4096.0f;
+				tilemap_uv_end_y[j][i] = (50.0f * selected_tile_y + 50.0f) / 4096.0f;
+			}
+
+		for (int i = 0; i < 40; i++)
+		{
+			Entity* en = new Entity(rand() % 2400 + 100, rand() % 2400 + 100);
+
+			//*en->collision_size_right -= 10.0f * i;
+
+			en->link_to_path_matrix = path_to_player_matrix;
+			en->AI_control = Entity::static_control_movable_enemy;
+
+			put_entity_to_cluster(en);
+			//entity_list.push_back(en);
+			//entity_list.push_back(new Entity(300.0f, 150.0f));
+			//entity_list.push_back(new Entity(400.0f, 150.0f));
+		}
+
+		link_to_player = new Entity(rand() % 100 + 100.0f, rand() % 100 + 100.0f);
+
+		*link_to_player->mass = 1000.0f;
+		link_to_player->link_to_path_matrix = path_to_player_matrix;
+		link_to_player->AI_control = new AIControlPlayer();
+
+		put_entity_to_cluster(link_to_player);
+
+		std::cout << "game window created" << std::endl;
+
+		EGraphicCore::gabarite_tileset = ETextureAtlas::put_texture_to_atlas("data/tileset.png", terrain_atlas);
+		EGraphicCore::gabarite_white_pixel = ETextureAtlas::put_texture_to_atlas("data/white_pixel.png", terrain_atlas);
+
+
+		EGraphicCore::gabarite_white_pixel->x += 1 / 4096.0f;
+		EGraphicCore::gabarite_white_pixel->y += 1 / 4096.0f;
+
+		EGraphicCore::gabarite_white_pixel->x2 -= 1 / 4096.0f;
+		EGraphicCore::gabarite_white_pixel->y2 -= 1 / 4096.0f;
 	}
 
 	EWindowGame::~EWindowGame()

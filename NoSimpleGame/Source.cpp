@@ -129,6 +129,7 @@ int main()
 	EWindowGame* wg = new EWindowGame();
 	EWindow::window_game = wg;
 	EWindow::window_list.push_back (wg);
+	wg->init();
 	
 
 	while (!glfwWindowShouldClose(EWindow::main_window))

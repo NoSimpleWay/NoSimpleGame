@@ -66,6 +66,9 @@
     <ClCompile Include="EGabarite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ESprite.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EColor.h">
@@ -108,6 +111,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="EGraphicCore.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ESprite.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,5 +1,9 @@
 #pragma once
 //#include "AIControlMovableEnemy.h"
+#include "EColor.h"
+#include <iostream>
+#include "ESprite.h"
+#include <vector>
 
 class AIControl;
 class AIControlMovableEnemy;
@@ -64,13 +68,15 @@ public:
 	float* next_x = new float(0.0f);
 	float* next_y = new float(0.0f);
 
-	float *collision_size_up =			new float(13.0f);
-	float *collision_size_right =		new float(13.0f);
-	float *collision_size_down =		new float(13.0f);
-	float *collision_size_left =		new float (13.0f);
+	float *collision_size_up =			new float (3.0f);
+	float *collision_size_right =		new float (3.0f);
+	float *collision_size_down =		new float (3.0f);
+	float *collision_size_left =		new float (3.0f);
 
 	float bri;
 
+	EColor* color = new EColor((rand() % 255) / 255.0f, (rand() % 255) / 255.0f, (rand() % 255) / 255.0f, 1.0f);
+	std::vector <ESprite*> sprite_list;
 
 
 	Entity();

@@ -49,34 +49,7 @@ EGabarite* ETextureAtlas::put_texture_to_atlas(std::string _name, ETextureAtlas*
 
 	EGraphicCore::load_texture(_name.c_str(), 0);
 
-	int place_x = 0;
-	int place_y = 0;
-	for (int x = 0; x < 1024; x++)
-	for (int y = 0; y < 1024; y++)
-	{
-		if (_ta->can_place_here(x, y, (int)(EGraphicCore::last_texture_w / 4.0f), (int)(EGraphicCore::last_texture_h / 4.0f)))
-		{
-			place_x = x * 4;
-			place_y = y * 4;
-
-			x = 99999;
-			y = 99999;
-		}
-	}
-
-	for (int x = (int)(place_x / 4.0f); x < (int)(EGraphicCore::last_texture_w / 4.0f) + 1; x++)
-	for (int y = (int)(place_y / 4.0f); y < (int)(EGraphicCore::last_texture_h / 4.0f) + 1; y++)
-	if ((x < 1024) && (y < 1024))
-	{
-		_ta->free_space[x][y] = false;
-	}
-
-	EGraphicCore::batch->reset();
-	EGraphicCore::batch->draw_rect(place_x, place_y, EGraphicCore::last_texture_w, EGraphicCore::last_texture_h);
-	EGraphicCore::batch->reinit();
-	EGraphicCore::batch->draw_call();
-
-	std::cout << "draw to x=" << place_x << " y=" << place_y << std::endl;
+	
 
 	EGabarite* duplicate_gabarite = NULL;
 
@@ -92,10 +65,45 @@ EGabarite* ETextureAtlas::put_texture_to_atlas(std::string _name, ETextureAtlas*
 	EGabarite* new_gabarite = NULL;
 	if (duplicate_gabarite == NULL)
 	{
+
+		std::cout << "no dublicates with <" << _name << ">" << std::endl;
+
+		int place_x = 0;
+		int place_y = 0;
+		for (int x = 0; x < 1024; x++)
+		for (int y = 0; y < 1024; y++)
+		{
+			if (_ta->can_place_here(x, y, (int)(EGraphicCore::last_texture_w / 4.0f), (int)(EGraphicCore::last_texture_h / 4.0f)))
+			{
+				place_x = x * 4;
+				place_y = y * 4;
+
+				x = 99999;
+				y = 99999;
+			}
+		}
+
+		for (int x = (int)(place_x / 4.0f); x < (int)((place_x + EGraphicCore::last_texture_w) / 4.0f) + 1; x++)
+		for (int y = (int)(place_y / 4.0f); y < (int)((place_y + EGraphicCore::last_texture_h) / 4.0f) + 1; y++)
+		if ((x < 1024) && (y < 1024))
+		{
+			_ta->free_space[x][y] = false;
+		}
+
+		EGraphicCore::batch->reset();
+		EGraphicCore::batch->draw_rect(place_x, place_y, EGraphicCore::last_texture_w, EGraphicCore::last_texture_h);
+		EGraphicCore::batch->reinit();
+		EGraphicCore::batch->draw_call();
+
+		std::cout << "draw to x=" << place_x << " y=" << place_y << std::endl;
+
 		new_gabarite = new EGabarite(_name, place_x / 4096.0f, place_y / 4096.0f, EGraphicCore::last_texture_w / 4096.0f, EGraphicCore::last_texture_h / 4096.0f);
+		
+		EGraphicCore::gabarite_list.push_back(new_gabarite);
 	}
 	else
 	{
+		std::cout << "DUBLICATE <" << _name << ">" << std::endl;
 		new_gabarite = duplicate_gabarite;
 	}
 
@@ -142,8 +150,8 @@ ETextureAtlas::ETextureAtlas()
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 4096, 4096, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);//texture filtering
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);//
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);//texture filtering
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);//
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
 	// create a renderbuffer object for depth and stencil attachment (we won't be sampling these)	glGenRenderbuffers(1, &rbo);

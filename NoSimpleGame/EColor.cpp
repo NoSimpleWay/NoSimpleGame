@@ -13,6 +13,10 @@ EColorCollection* EColor::COLOR_DARK_GRAY			= new EColorCollection(0.25f,	0.25f,
 
 EColor::EColor(float _r, float _g, float _b, float _a)
 {
+	red		= _r;
+	green	= _g;
+	blue	= _b;
+	alpha	= _a;
 }
 
 EColor::~EColor()

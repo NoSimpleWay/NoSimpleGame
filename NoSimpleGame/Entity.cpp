@@ -110,6 +110,8 @@ Entity::Entity(float _x, float _y)
 	//current_control = control;
 	//control = AIControlMovableEnemy;
 	//*position_x = _x;
+	sprite_list.push_back(new ESprite(ETextureAtlas::put_texture_to_atlas("data/pixel_garage.png", EWindow::window_game->terrain_atlas), -100.0f, 0.0f, 200.0f, 200.0f));
+	
 }
 
 Entity::~Entity()

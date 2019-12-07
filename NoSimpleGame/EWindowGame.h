@@ -47,6 +47,8 @@ public:
 
 	float shoot_cooldown = 0.5f;
 
+	std::vector <Entity*> draw_buffer;
+
 	ECluster* cluster[20][20];
 
 	ETextureAtlas* terrain_atlas = new ETextureAtlas();
@@ -66,4 +68,6 @@ public:
 	void put_bullet_to_cluster(Entity* _e);
 
 	int check_collision(Entity* _a, Entity* _b);
+
+	void init();
 };
