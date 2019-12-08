@@ -44,6 +44,7 @@ public:
 
 	float camera_x = 0;
 	float camera_y = 0;
+	float camera_zoom = 1.0f;
 
 	float shoot_cooldown = 0.5f;
 
@@ -63,6 +64,8 @@ public:
 
 	void default_draw(float _d);
 	virtual void draw(float _d);
+
+	virtual void draw_interface(float _d);
 
 	void put_entity_to_cluster(Entity* _e);
 	void put_bullet_to_cluster(Entity* _e);

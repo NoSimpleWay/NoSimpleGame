@@ -4,10 +4,10 @@
 EPathMatrix::EPathMatrix()
 {
 	for (int i = 0; i < PATH_MATRIX_ARRAY_SIZE; i++)
-		for (int j = 0; j < PATH_MATRIX_ARRAY_SIZE; j++)
+	for (int j = 0; j < PATH_MATRIX_ARRAY_SIZE; j++)
 		{
 
-			if (rand() % 10 == 0)
+			if (rand() % 1000 == 0)
 			{
 				unwalk_matrix[j][i][0] = true;
 				unwalk_matrix[j][i][1] = true;
@@ -33,7 +33,7 @@ EPathMatrix::~EPathMatrix()
 void EPathMatrix::default_update(float _d)
 {
 	//set target position
-	if (heatmap_phase == Enums::HEATMAP_PHASE::UP)
+	if (heatmap_phase == Enums::HEATMAP_PHASE::PHASE_UP)
 	{
 		path_matrix_point_start_x = path_position_x - PATH_MATRIX_CALCULATION_DISTANCE; if (path_matrix_point_start_x < 1) { path_matrix_point_start_x = 1; }
 		path_matrix_point_end_x = path_position_x + PATH_MATRIX_CALCULATION_DISTANCE; if (path_matrix_point_end_x > PATH_MATRIX_ARRAY_SIZE - 2) { path_matrix_point_end_x = PATH_MATRIX_ARRAY_SIZE - 2; }
@@ -48,7 +48,7 @@ void EPathMatrix::default_update(float _d)
 
 
 	//
-	if (heatmap_phase == Enums::HEATMAP_PHASE::UP)
+	if (heatmap_phase == Enums::HEATMAP_PHASE::PHASE_UP)
 		for (int i = path_matrix_point_start_y; i < path_matrix_point_end_y; i++)
 			for (int j = path_matrix_point_start_x; j < path_matrix_point_end_x; j++)
 				if ((!unwalk_matrix[j][i + 1][back_path_buffer]) && (!blocked_by_entity[j][i + 1][back_path_buffer]))
@@ -59,7 +59,7 @@ void EPathMatrix::default_update(float _d)
 					}
 				}
 	//
-	if (heatmap_phase == Enums::HEATMAP_PHASE::DOWN)
+	if (heatmap_phase == Enums::HEATMAP_PHASE::PHASE_DOWN)
 		for (int i = path_matrix_point_end_y; i > path_matrix_point_start_y; i--)
 		for (int j = path_matrix_point_start_x; j < path_matrix_point_end_x; j++)
 			if ((!unwalk_matrix[j][i - 1][back_path_buffer]) && (!blocked_by_entity[j][i - 1][back_path_buffer]))
@@ -67,7 +67,7 @@ void EPathMatrix::default_update(float _d)
 					if (path_matrix[j][i - 1][back_path_buffer] > path_matrix[j][i][back_path_buffer]) { path_matrix[j][i - 1][back_path_buffer] = path_matrix[j][i][back_path_buffer] + 1; }
 			}
 	//
-	if (heatmap_phase == Enums::HEATMAP_PHASE::RIGHT)
+	if (heatmap_phase == Enums::HEATMAP_PHASE::PHASE_RIGHT)
 		for (int j = path_matrix_point_start_x; j < path_matrix_point_end_x; j++)
 			for (int i = path_matrix_point_start_y; i < path_matrix_point_end_y; i++)
 				if ((!unwalk_matrix[j + 1][i][back_path_buffer]) && (!blocked_by_entity[j + 1][i][back_path_buffer]))
@@ -81,7 +81,7 @@ void EPathMatrix::default_update(float _d)
 
 
 	//
-	if (heatmap_phase == Enums::HEATMAP_PHASE::LEFT)
+	if (heatmap_phase == Enums::HEATMAP_PHASE::PHASE_LEFT)
 		for (int i = path_matrix_point_start_y; i < path_matrix_point_end_y; i++)
 			for (int j = path_matrix_point_end_x; j > path_matrix_point_start_x; j--)
 				if ((!unwalk_matrix[j - 1][i][back_path_buffer]) && (!blocked_by_entity[j - 1][i][back_path_buffer]))
@@ -93,7 +93,7 @@ void EPathMatrix::default_update(float _d)
 				}
 
 	//
-	if (heatmap_phase == Enums::HEATMAP_PHASE::HEATING)
+	if (heatmap_phase == Enums::HEATMAP_PHASE::PHASE_HEATING)
 		for (int i = path_matrix_point_start_y; i < path_matrix_point_end_y; i++)
 			for (int j = path_matrix_point_start_x; j < path_matrix_point_end_x; j++)
 			{

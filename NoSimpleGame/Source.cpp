@@ -12,6 +12,7 @@
 
 #include "Enums.h"
 #include "EWindowGame.h"
+#include "EFont.h"
 
 
 
@@ -130,6 +131,14 @@ int main()
 	EWindow::window_game = wg;
 	EWindow::window_list.push_back (wg);
 	wg->init();
+
+
+	//loading font
+	EFont* new_font = NULL;
+		EGabarite* font_gabarite = ETextureAtlas::put_texture_to_atlas("data/font/franklin_0.png", EWindow::window_game->terrain_atlas);
+		new_font = new EFont("franklin", font_gabarite, false);
+		EFont::active_font = new_font;
+	EFont::font_list.push_back(new_font);
 	
 
 	while (!glfwWindowShouldClose(EWindow::main_window))
@@ -160,6 +169,7 @@ int main()
 		{
 			w->default_draw(delta_time);
 			w->draw(delta_time);
+			w->draw_interface(delta_time);
 		}
 		
 

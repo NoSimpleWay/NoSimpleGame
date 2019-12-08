@@ -18,7 +18,7 @@ public:
 	int path_matrix_point_start_y;
 	int path_matrix_point_end_y;
 
-	int heatmap_phase = Enums::HEATMAP_PHASE::UP;
+	int heatmap_phase = Enums::HEATMAP_PHASE::PHASE_UP;
 	float path_calculation_cooldown = 0.1f;
 
 	int path_position_x = 0;

@@ -68,14 +68,14 @@ public:
 	float* next_x = new float(0.0f);
 	float* next_y = new float(0.0f);
 
-	float *collision_size_up =			new float (3.0f);
-	float *collision_size_right =		new float (3.0f);
-	float *collision_size_down =		new float (3.0f);
-	float *collision_size_left =		new float (3.0f);
+	float *collision_size_up =			new float (15.0f);
+	float *collision_size_right =		new float (22.0f);
+	float *collision_size_down =		new float (5.0f);
+	float *collision_size_left =		new float (22.0f);
 
 	float bri;
 
-	EColor* color = new EColor((rand() % 255) / 255.0f, (rand() % 255) / 255.0f, (rand() % 255) / 255.0f, 1.0f);
+	EColor* color = new EColor(1.0f, 1.0f, 1.0f, 1.0f);
 	std::vector <ESprite*> sprite_list;
 
 

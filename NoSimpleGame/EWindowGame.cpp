@@ -13,6 +13,33 @@
 
 	void EWindowGame::update(float _d)
 	{
+		if
+		(
+			(glfwGetKey(EWindow::main_window, GLFW_KEY_PAGE_UP) == GLFW_RELEASE)
+			&&
+			(glfwGetKey(EWindow::main_window, GLFW_KEY_PAGE_DOWN) == GLFW_RELEASE)
+		)
+		{
+			system_button_release = true;
+		}
+
+		if ((glfwGetKey(EWindow::main_window, GLFW_KEY_PAGE_UP) == GLFW_PRESS) && (system_button_release))
+		{
+			system_button_release = false;
+			camera_zoom *= 0.5f;
+		}
+
+		if ((glfwGetKey(EWindow::main_window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS) && (system_button_release))
+		{
+			system_button_release = false;
+			camera_zoom *= 2.0f;
+		}
+
+		start = std::chrono::high_resolution_clock::now();
+
+		time_process_name.clear();
+		time_process_value.clear();
+
 		if (shoot_cooldown > 0) { shoot_cooldown -= _d; }
 
 		if ((EWindow::LMB) && (shoot_cooldown <= 0))
@@ -53,8 +80,8 @@
 		cluster_calculator_left_border =	(int)(character_position_x / CLUSTER_SIZE) - 2; if (cluster_calculator_left_border < 0) {cluster_calculator_left_border = 0;}
 		cluster_calculator_right_border =	(int)(character_position_x / CLUSTER_SIZE) + 2; if (cluster_calculator_right_border > 19) { cluster_calculator_right_border = 19;}
 		
-		cluster_calculator_down_border =	(int)(character_position_y / CLUSTER_SIZE) - 2; if (cluster_calculator_down_border < 0) { cluster_calculator_down_border = 0;}
-		cluster_calculator_up_border =		(int)(character_position_y / CLUSTER_SIZE) + 2; if (cluster_calculator_up_border > 19) { cluster_calculator_up_border = 19;}
+		cluster_calculator_down_border =	(int)(character_position_y / CLUSTER_SIZE) - 1; if (cluster_calculator_down_border < 0) { cluster_calculator_down_border = 0;}
+		cluster_calculator_up_border =		(int)(character_position_y / CLUSTER_SIZE) + 1; if (cluster_calculator_up_border > 19) { cluster_calculator_up_border = 19;}
 
 		path_to_player_matrix->path_calculation_cooldown -= _d;
 
@@ -64,6 +91,7 @@
 			for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
 			for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
 			for (Entity* e : cluster[j][i]->entity_list)
+			if (!*e->is_dead)
 			{
 				path_to_player_matrix->blocked_by_entity[(int)(*e->position_x / PATH_CELL_SIZE)][(int)(*e->position_y / PATH_CELL_SIZE)][path_to_player_matrix->back_path_buffer] = true;
 				path_to_player_matrix->blocked_by_entity[(int)(*e->position_x / PATH_CELL_SIZE)][(int)(*e->position_y / PATH_CELL_SIZE)][path_to_player_matrix->current_path_buffer] = true;
@@ -75,7 +103,9 @@
 			//reset cooldown
 			path_to_player_matrix->path_calculation_cooldown += 0.025f;
 		}
-
+		
+		add_time_process("create bullets");
+	
 		float reverse_delta = 1 - _d;
 		float delta_correction = _d * (1.0f + reverse_delta * reverse_delta);
 
@@ -170,12 +200,13 @@
 						//*e->speed_x *= pow(0.1, _d);
 					}
 
-					/*
-					if (collision_side == 0){e->move_relative( 0.0f, (*e2->position_y - *e->position_y + *e2->collision_size_up + *e->collision_size_down) * 0.9f);}
-					if (collision_side == 1) { e->move_relative((*e2->position_x - *e->position_x + *e2->collision_size_right + *e->collision_size_left) * 0.9f, 0.0f); }
 					
-					if (collision_side == 2) { e->move_relative(0.0f, (*e2->position_y - *e->position_y - *e2->collision_size_down - *e->collision_size_up) * 0.9f); }
-					if (collision_side == 3) { e->move_relative((*e2->position_x - *e->position_x - *e2->collision_size_left - *e->collision_size_right) * 0.9f, 0.0f); }
+					/*
+					if (collision_side == 0){e->move_relative( 0.0f, (*e2->position_y - *e->position_y + *e2->collision_size_up + *e->collision_size_down) * 0.99f);}
+					if (collision_side == 1) { e->move_relative((*e2->position_x - *e->position_x + *e2->collision_size_right + *e->collision_size_left) * 0.99f, 0.0f); }
+					
+					if (collision_side == 2) { e->move_relative(0.0f, (*e2->position_y - *e->position_y - *e2->collision_size_down - *e->collision_size_up) * 0.99f); }
+					if (collision_side == 3) { e->move_relative((*e2->position_x - *e->position_x - *e2->collision_size_left - *e->collision_size_right) * 0.99f, 0.0f); }
 					*/
 					//if (collision_side == 0){*e->speed_y = (*e2->position_y - *e->position_y + *e2->collision_size_up + *e->collision_size_down) * 0.8f;}
 				}
@@ -200,6 +231,7 @@
 			}
 		}
 
+		add_time_process("entity control and collision");
 
 		//bullet clusters
 		for (int i = 0; i < 20; i++)
@@ -269,6 +301,8 @@
 			}
 		}
 
+		add_time_process("bullet update process");
+
 			for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
 			for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
 			for (Entity* e : cluster[j][i]->entity_list)
@@ -290,12 +324,13 @@
 
 	void EWindowGame::draw(float _d)
 	{
-		camera_x = round(EGraphicCore::SCR_WIDTH / 2.0f - character_position_x) * EGraphicCore::correction_x;
-		camera_y = round(EGraphicCore::SCR_HEIGHT / 2.0f - character_position_y) * EGraphicCore::correction_y;
+
+		camera_x = round(EGraphicCore::SCR_WIDTH / 2.0f - character_position_x * camera_zoom) * EGraphicCore::correction_x;
+		camera_y = round(EGraphicCore::SCR_HEIGHT / 2.0f - character_position_y * camera_zoom) * EGraphicCore::correction_y;
 		EGraphicCore::matrix_transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
 
 		EGraphicCore::matrix_transform = glm::translate(EGraphicCore::matrix_transform, glm::vec3(-1 + camera_x, -1 + camera_y, 0.0f));
-		EGraphicCore::matrix_transform = glm::scale(EGraphicCore::matrix_transform, glm::vec3(EGraphicCore::correction_x, EGraphicCore::correction_y, 1));
+		EGraphicCore::matrix_transform = glm::scale(EGraphicCore::matrix_transform, glm::vec3(EGraphicCore::correction_x * camera_zoom, EGraphicCore::correction_y * camera_zoom, 1));
 
 		transformLoc = glGetUniformLocation(EGraphicCore::ourShader->ID, "transform");
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(EGraphicCore::matrix_transform));
@@ -320,23 +355,46 @@
 			);
 		}
 
+		add_time_process("draw tileset");
+
 
 		//path visualise
 		if (false)
-		for (int i = path_to_player_matrix->path_matrix_point_start_y; i < path_to_player_matrix->path_matrix_point_end_y; i++)
-		for (int j = path_to_player_matrix->path_matrix_point_start_x; j < path_to_player_matrix->path_matrix_point_end_x; j++)
 		{
+			for (int i = path_to_player_matrix->path_matrix_point_start_y; i < path_to_player_matrix->path_matrix_point_end_y; i++)
+			for (int j = path_to_player_matrix->path_matrix_point_start_x; j < path_to_player_matrix->path_matrix_point_end_x; j++)
+			{
 
 				//float col = 1.0f - path_matrix[j][i] / 10.0f;
 				//EWindow::batch->setcolor(col, col, col, 1.0f);
 				/**/
 
-			float col = 1.0f - (path_to_player_matrix->path_matrix[j][i][path_to_player_matrix->current_path_buffer] - 0.0f) / 40.0f;
-			EGraphicCore::batch->setcolor(col, col, col, 1.0f);
+				float col = 1.0f - (path_to_player_matrix->path_matrix[j][i][path_to_player_matrix->current_path_buffer] - 0.0f) / 40.0f;
+				EGraphicCore::batch->setcolor(col, col, col, 1.0f);
 
 
-			EGraphicCore::batch->draw_gabarite(j * PATH_CELL_SIZE + 1.0f, i * PATH_CELL_SIZE + 1.0f, PATH_CELL_SIZE - 2.0f, PATH_CELL_SIZE - 2.0f, EGraphicCore::gabarite_white_pixel);
+				EGraphicCore::batch->draw_gabarite(j * PATH_CELL_SIZE + 1.0f, i * PATH_CELL_SIZE + 1.0f, PATH_CELL_SIZE - 2.0f, PATH_CELL_SIZE - 2.0f, EGraphicCore::gabarite_white_pixel);
+			}
+
+			add_time_process("path visualise");
 		}
+
+		if (false)
+		for (int i = path_to_player_matrix->path_matrix_point_start_y; i < path_to_player_matrix->path_matrix_point_end_y; i++)
+		for (int j = path_to_player_matrix->path_matrix_point_start_x; j < path_to_player_matrix->path_matrix_point_end_x; j++)
+		if (path_to_player_matrix->unwalk_matrix[j][i][path_to_player_matrix->current_path_buffer])
+		{
+			//if (unwalk_matrix[j][i][current_path_buffer]) { if (unwalk_matrix[j][i][current_path_buffer]) }
+			//else { EWindow::batch->setcolor(EColor::COLOR_LIGHT_GRAY); }
+			EGraphicCore::batch->setcolor_lum(EColor::COLOR_RED, 0.2f);
+			//if (unwalk_matrix[j][i][current_path_buffer])
+
+			EGraphicCore::batch->draw_gabarite(j * PATH_CELL_SIZE, i * PATH_CELL_SIZE, PATH_CELL_SIZE - 2.0f, PATH_CELL_SIZE - 2.0f, EGraphicCore::gabarite_white_pixel);
+		}
+
+		add_time_process("draw unwalk matrix");
+
+		
 
 		//entity draw
 		for (int i = cluster_calculator_up_border; i >= cluster_calculator_down_border; i--)
@@ -356,7 +414,7 @@
 			bool already_sort = false;
 
 			//sort draw_buffer
-			while ((!already_sort) && (swap_count < 200) && (draw_buffer.size() > 0))
+			while ((!already_sort) && (swap_count < 1000) && (draw_buffer.size() > 0))
 			{
 				already_sort = true;
 
@@ -376,7 +434,7 @@
 					}
 				}
 
-				if (swap_count > 100)
+				if (swap_count > 10000)
 				{
 					std::cout << "Too many swaps" << std::endl;
 				}
@@ -394,21 +452,26 @@
 					//std::cout << *s->sprite_x << std::endl;
 					EGraphicCore::batch->draw_gabarite(*e->position_x + *s->sprite_x, *e->position_y + *s->sprite_y, *s->sprite_size_x, *s->sprite_size_y, s->gabarite);
 
-					EGraphicCore::batch->setcolor_alpha(EColor::COLOR_RED, 0.5f);
-					EGraphicCore::batch->draw_rama
-					(
-						*e->position_x - *e->collision_size_left,
-						*e->position_y - *e->collision_size_down,
-						*e->collision_size_left + *e->collision_size_right,
-						*e->collision_size_down + *e->collision_size_up,
-						1.0f,
-						EGraphicCore::gabarite_white_pixel
-					);
+					if (false)
+					{
+						EGraphicCore::batch->setcolor_alpha(EColor::COLOR_RED, 0.5f);
+						EGraphicCore::batch->draw_rama
+						(
+							*e->position_x - *e->collision_size_left,
+							*e->position_y - *e->collision_size_down,
+							*e->collision_size_left + *e->collision_size_right,
+							*e->collision_size_down + *e->collision_size_up,
+							1.0f,
+							EGraphicCore::gabarite_white_pixel
+						);
+					}
 				}
 			}
 
 			
 		}
+
+		add_time_process("draw entity");
 
 		for (int i = cluster_calculator_down_border; i <= cluster_calculator_up_border; i++)
 		for (int j = cluster_calculator_left_border; j <= cluster_calculator_right_border; j++)
@@ -432,18 +495,10 @@
 			);
 		}
 
-		
-		for (int i = path_to_player_matrix->path_matrix_point_start_y; i < path_to_player_matrix->path_matrix_point_end_y; i++)
-		for (int j = path_to_player_matrix->path_matrix_point_start_x; j < path_to_player_matrix->path_matrix_point_end_x; j++)
-		if (path_to_player_matrix->unwalk_matrix[j][i][path_to_player_matrix->current_path_buffer])
-		{
-			//if (unwalk_matrix[j][i][current_path_buffer]) { if (unwalk_matrix[j][i][current_path_buffer]) }
-			//else { EWindow::batch->setcolor(EColor::COLOR_LIGHT_GRAY); }
-			EGraphicCore::batch->setcolor_lum(EColor::COLOR_RED, 0.2f);
-			//if (unwalk_matrix[j][i][current_path_buffer])
+		add_time_process("draw bullets");
 
-			EGraphicCore::batch->draw_gabarite(j * PATH_CELL_SIZE, i * PATH_CELL_SIZE, PATH_CELL_SIZE - 2.0f, PATH_CELL_SIZE - 2.0f, EGraphicCore::gabarite_white_pixel);
-		}
+		
+
 
 
 		EGraphicCore::batch->setcolor_alpha(EColor::COLOR_BLUE, 0.2f);
@@ -462,7 +517,7 @@
 		
 		int choosed_path = -1;
 
-		if (glfwGetKey(EWindow::main_window, GLFW_KEY_END) == GLFW_PRESS)
+		if (glfwGetKey(EWindow::main_window, GLFW_KEY_END) == GLFW_PRESS) 
 		{
 			EGraphicCore::batch->setcolor(EColor::COLOR_GRAY);
 			EGraphicCore::batch->draw_gabarite(0, 0, 4096.0f, 4069.0f, EGraphicCore::gabarite_white_pixel);
@@ -471,7 +526,43 @@
 			EGraphicCore::batch->draw_rect(0, 0, 4096.0f, 4096.0f);
 		}
 
+
+
 	}
+	void EWindowGame::draw_interface(float _d)
+	{	
+		EGraphicCore::batch->reinit();
+		EGraphicCore::batch->draw_call();
+		EGraphicCore::batch->reset();
+
+		EGraphicCore::matrix_transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+
+		EGraphicCore::matrix_transform = glm::translate(EGraphicCore::matrix_transform, glm::vec3(-1, -1, 0.0f));
+		EGraphicCore::matrix_transform = glm::scale(EGraphicCore::matrix_transform, glm::vec3(EGraphicCore::correction_x, EGraphicCore::correction_y, 1));
+
+		transformLoc = glGetUniformLocation(EGraphicCore::ourShader->ID, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(EGraphicCore::matrix_transform));
+
+		float microseconds = std::chrono::duration_cast<std::chrono::microseconds>(stop - start).count() / 1000000.0f;
+
+
+		if (glfwGetKey(EWindow::main_window, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS)
+		{
+
+			EGraphicCore::batch->setcolor_alpha(EColor::COLOR_BLACK, 0.9f);
+			EGraphicCore::batch->draw_gabarite(0.0f, 0.0f, 400.0f, EGraphicCore::SCR_HEIGHT, EGraphicCore::gabarite_white_pixel);
+
+			for (int i = 0; i < time_process_name.size(); i++)
+			{
+				EGraphicCore::batch->setcolor(EColor::COLOR_WHITE);
+				EFont::active_font->draw(EGraphicCore::batch, time_process_name.at(i), 8.0f, EGraphicCore::SCR_HEIGHT - i * 17.0f - 17.0f);
+
+				EGraphicCore::batch->setcolor(EColor::COLOR_GREEN);
+				EFont::active_font->draw(EGraphicCore::batch, std::to_string(time_process_value.at(i)), 208.0f, EGraphicCore::SCR_HEIGHT - i * 17.0f - 17.0f);
+			}
+		}
+	}
+
 	void EWindowGame::put_bullet_to_cluster (Entity* _e)
 	{
 		//std::cout << "try place entity to cluster " << (int)(*_e->position_x / CLUSTER_SIZE) << " | " << (int)(*_e->position_y / CLUSTER_SIZE) << std::endl;
@@ -597,14 +688,82 @@
 				tilemap_uv_end_y[j][i] = (50.0f * selected_tile_y + 50.0f) / 4096.0f;
 			}
 
-		for (int i = 0; i < 40; i++)
+		for (int i = 0; i < 400; i++)
 		{
 			Entity* en = new Entity(rand() % 2400 + 100, rand() % 2400 + 100);
 
 			//*en->collision_size_right -= 10.0f * i;
 
+
 			en->link_to_path_matrix = path_to_player_matrix;
 			en->AI_control = Entity::static_control_movable_enemy;
+			en->sprite_list.push_back(new ESprite(ETextureAtlas::put_texture_to_atlas("data/sphere.png", EWindow::window_game->terrain_atlas), 0.0f, 0.0f, 0.0f, 0.0f));
+
+			put_entity_to_cluster(en);
+			//entity_list.push_back(en);
+			//entity_list.push_back(new Entity(300.0f, 150.0f));
+			//entity_list.push_back(new Entity(400.0f, 150.0f));
+		}
+
+		for (int j = 0; j < 20; j++)
+		for (int i = 0; i < 20; i++)
+		if (rand() % 15 == 0)
+		{
+			Entity* en = new Entity(j * 150.0f + 75.0f, i * 100.0f);
+
+			for (int x = j * 3; x < j * 3 + 3; x++)
+			for (int y = i * 2; y < i * 2 + 2; y++)
+			{
+				path_to_player_matrix->unwalk_matrix[x][y][0] = true;
+				path_to_player_matrix->unwalk_matrix[x][y][1] = true;
+			}
+
+			//*en->collision_size_right -= 10.0f * i;
+
+
+			en->link_to_path_matrix = path_to_player_matrix;
+			//en->AI_control = Entity::static_control_movable_enemy;
+			en->sprite_list.push_back(new ESprite(ETextureAtlas::put_texture_to_atlas("data/pixel_garage.png", EWindow::window_game->terrain_atlas), 0.0f, 0.0f, 0.0f, 0.0f));
+			
+			*en->collision_size_left = 76.0f;
+			*en->collision_size_right = 76.0f;
+
+			*en->collision_size_up = 50.0f;
+			*en->collision_size_down = 0.0f;
+
+			*en->mass = 100000.0f;
+			*en->life = 10000;
+
+			put_entity_to_cluster(en);
+			//entity_list.push_back(en);
+			//entity_list.push_back(new Entity(300.0f, 150.0f));
+			//entity_list.push_back(new Entity(400.0f, 150.0f));
+		}
+
+		for (int j = 0; j < 100; j++)
+		for (int i = 0; i < 100; i++)
+		if ((rand() % 10 == 0) && (!path_to_player_matrix->unwalk_matrix[j][i][0]))
+		{
+			Entity* en = new Entity(j * 50.0f + 25.0f, i * 50.0f);
+
+				path_to_player_matrix->unwalk_matrix[j][i][0] = true;
+				path_to_player_matrix->unwalk_matrix[j][i][1] = true;
+
+			//*en->collision_size_right -= 10.0f * i;
+
+
+			en->link_to_path_matrix = path_to_player_matrix;
+			//en->AI_control = Entity::static_control_movable_enemy;
+			en->sprite_list.push_back(new ESprite(ETextureAtlas::put_texture_to_atlas("data/block.png", EWindow::window_game->terrain_atlas), 0.0f, 0.0f, 0.0f, 0.0f));
+			
+			*en->collision_size_left = 26.0f;
+			*en->collision_size_right = 26.0f;
+
+			*en->collision_size_up = 50.0f;
+			*en->collision_size_down = 0.0f;
+
+			*en->mass = 100000.0f;
+			*en->life = 10000;
 
 			put_entity_to_cluster(en);
 			//entity_list.push_back(en);
@@ -613,7 +772,7 @@
 		}
 
 		link_to_player = new Entity(rand() % 100 + 100.0f, rand() % 100 + 100.0f);
-
+		link_to_player->sprite_list.push_back(new ESprite(ETextureAtlas::put_texture_to_atlas("data/sphere.png", EWindow::window_game->terrain_atlas), 0.0f, 0.0f, 0.0f, 0.0f));
 		*link_to_player->mass = 1000.0f;
 		link_to_player->link_to_path_matrix = path_to_player_matrix;
 		link_to_player->AI_control = new AIControlPlayer();
